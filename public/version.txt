@@ -1,0 +1,4 @@
+Version: 2.2.0
+Updated: 2024-01-15
+Features: Real platform icons, working downloads, hydration fixes
+Status: FORCE DEPLOYMENT

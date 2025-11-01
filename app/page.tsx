@@ -205,7 +205,7 @@ export default function HomePage() {
             </svg>
           </Link>
           <p className="text-gray-500 mt-4 text-sm">Trusted by 10,000+ marketing teams worldwide</p>
-          <p className="text-gray-400 mt-2 text-xs">v2.1.0 - Updated: Jan 15, 2024</p>
+          <p className="text-gray-400 mt-2 text-xs">v2.2.0 - Updated: Jan 15, 2024 - Build: 1547</p>
         </div>
       </div>
     </div>

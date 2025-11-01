@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Real-time Analytics - CampaignPulse</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: Arial, sans-serif; background: #f5f5f5; }
+        .container { max-width: 1400px; margin: 0 auto; padding: 20px; }
+        .header { background: #dc2626; color: white; padding: 20px; border-radius: 8px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; }
+        .live-indicator { background: #22c55e; padding: 5px 10px; border-radius: 20px; font-size: 12px; display: flex; align-items: center; gap: 5px; }
+        .pulse { width: 8px; height: 8px; background: white; border-radius: 50%; animation: pulse 1s infinite; }
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+        .dashboard-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; margin-bottom: 20px; }
+        .metric-card { background: white; padding: 20px; border-radius: 8px; text-align: center; }
+        .metric-value { font-size: 32px; font-weight: bold; color: #dc2626; margin-bottom: 5px; }
+        .metric-change { font-size: 14px; padding: 4px 8px; border-radius: 4px; }
+        .positive { background: #dcfce7; color: #166534; }
+        .negative { background: #fecaca; color: #991b1b; }
+        .chart-section { background: white; padding: 20px; border-radius: 8px; margin-bottom: 20px; }
+        .chart-container { height: 300px; position: relative; }
+        .analytics-grid { display: grid; grid-template-columns: 2fr 1fr; gap: 20px; }
+        .channel-performance { background: white; padding: 20px; border-radius: 8px; }
+        .recent-activity { background: white; padding: 20px; border-radius: 8px; max-height: 400px; overflow-y: auto; }
+        .activity-item { padding: 10px; border-bottom: 1px solid #f3f4f6; display: flex; justify-content: space-between; align-items: center; }
+        .activity-time { font-size: 12px; color: #6b7280; }
+        .channel-bar { display: flex; align-items: center; margin: 10px 0; }
+        .channel-name { width: 100px; font-size: 14px; }
+        .progress-bar { flex: 1; height: 20px; background: #f3f4f6; border-radius: 10px; margin: 0 10px; overflow: hidden; }
+        .progress-fill { height: 100%; background: linear-gradient(90deg, #dc2626, #f87171); transition: width 0.3s ease; }
+        .channel-value { font-weight: bold; color: #dc2626; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div>
+                <h1>Real-time Analytics Dashboard</h1>
+                <p>Live campaign performance monitoring</p>
+            </div>
+            <div class="live-indicator">
+                <div class="pulse"></div>
+                LIVE
+            </div>
+        </div>
+
+        <div class="dashboard-grid">
+            <div class="metric-card">
+                <div class="metric-value" id="totalClicks">0</div>
+                <div>Total Clicks</div>
+                <div class="metric-change positive" id="clicksChange">+0%</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-value" id="totalConversions">0</div>
+                <div>Conversions</div>
+                <div class="metric-change positive" id="conversionsChange">+0%</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-value" id="totalRevenue">$0</div>
+                <div>Revenue</div>
+                <div class="metric-change positive" id="revenueChange">+0%</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-value" id="conversionRate">0%</div>
+                <div>Conversion Rate</div>
+                <div class="metric-change positive" id="rateChange">+0%</div>
+            </div>
+        </div>
+
+        <div class="chart-section">
+            <h2>Real-time Traffic & Conversions</h2>
+            <div class="chart-container">
+                <canvas id="realTimeChart"></canvas>
+            </div>
+        </div>
+
+        <div class="analytics-grid">
+            <div class="channel-performance">
+                <h2>Channel Performance</h2>
+                <div id="channelMetrics"></div>
+            </div>
+            <div class="recent-activity">
+                <h2>Live Activity Feed</h2>
+                <div id="activityFeed"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let realTimeChart;
+        let analyticsData = {
+            totalClicks: 0,
+            totalConversions: 0,
+            totalRevenue: 0,
+            conversionRate: 0,
+            previousData: { clicks: 0, conversions: 0, revenue: 0, rate: 0 },
+            timeLabels: [],
+            clicksData: [],
+            conversionsData: [],
+            channels: {
+                'Google Ads': { clicks: 0, conversions: 0, revenue: 0 },
+                'Facebook': { clicks: 0, conversions: 0, revenue: 0 },
+                'Instagram': { clicks: 0, conversions: 0, revenue: 0 },
+                'Email': { clicks: 0, conversions: 0, revenue: 0 },
+                'LinkedIn': { clicks: 0, conversions: 0, revenue: 0 }
+            },
+            activities: []
+        };
+
+        document.addEventListener('DOMContentLoaded', () => {
+            initializeChart();
+            startRealTimeUpdates();
+        });
+
+        function initializeChart() {
+            const ctx = document.getElementById('realTimeChart').getContext('2d');
+            realTimeChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: analyticsData.timeLabels,
+                    datasets: [{
+                        label: 'Clicks',
+                        data: analyticsData.clicksData,
+                        borderColor: '#dc2626',
+                        backgroundColor: 'rgba(220, 38, 38, 0.1)',
+                        tension: 0.4,
+                        fill: true
+                    }, {
+                        label: 'Conversions',
+                        data: analyticsData.conversionsData,
+                        borderColor: '#059669',
+                        backgroundColor: 'rgba(5, 150, 105, 0.1)',
+                        tension: 0.4,
+                        fill: true
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        x: {
+                            display: true,
+                            title: { display: true, text: 'Time' }
+                        },
+                        y: {
+                            display: true,
+                            title: { display: true, text: 'Count' },
+                            beginAtZero: true
+                        }
+                    },
+                    plugins: {
+                        legend: { display: true, position: 'top' }
+                    },
+                    animation: { duration: 750 }
+                }
+            });
+        }
+
+        function startRealTimeUpdates() {
+            // Update every 3 seconds for real-time feel
+            setInterval(() => {
+                updateAnalyticsData();
+                updateDashboard();
+                updateChart();
+                updateChannelPerformance();
+                updateActivityFeed();
+            }, 3000);
+
+            // Initial update
+            updateAnalyticsData();
+            updateDashboard();
+        }
+
+        function updateAnalyticsData() {
+            // Store previous data for change calculation
+            analyticsData.previousData = {
+                clicks: analyticsData.totalClicks,
+                conversions: analyticsData.totalConversions,
+                revenue: analyticsData.totalRevenue,
+                rate: analyticsData.conversionRate
+            };
+
+            // Simulate real-time data updates
+            const clicksIncrease = Math.floor(Math.random() * 15) + 1;
+            const conversionsIncrease = Math.floor(Math.random() * 3);
+            const revenueIncrease = Math.floor(Math.random() * 200) + 10;
+
+            analyticsData.totalClicks += clicksIncrease;
+            analyticsData.totalConversions += conversionsIncrease;
+            analyticsData.totalRevenue += revenueIncrease;
+            analyticsData.conversionRate = analyticsData.totalClicks > 0 ? 
+                ((analyticsData.totalConversions / analyticsData.totalClicks) * 100).toFixed(1) : 0;
+
+            // Update channel data
+            const channels = Object.keys(analyticsData.channels);
+            channels.forEach(channel => {
+                analyticsData.channels[channel].clicks += Math.floor(Math.random() * 5);
+                analyticsData.channels[channel].conversions += Math.floor(Math.random() * 2);
+                analyticsData.channels[channel].revenue += Math.floor(Math.random() * 50);
+            });
+
+            // Add new activity
+            if (Math.random() > 0.3) {
+                const activities = [
+                    'New click from Google Ads',
+                    'Conversion from Facebook campaign',
+                    'Email campaign click',
+                    'Instagram story engagement',
+                    'LinkedIn ad conversion'
+                ];
+                analyticsData.activities.unshift({
+                    text: activities[Math.floor(Math.random() * activities.length)],
+                    time: new Date().toLocaleTimeString(),
+                    value: `+$${Math.floor(Math.random() * 100)}`
+                });
+                
+                // Keep only last 20 activities
+                if (analyticsData.activities.length > 20) {
+                    analyticsData.activities = analyticsData.activities.slice(0, 20);
+                }
+            }
+        }
+
+        function updateDashboard() {
+            // Update main metrics
+            document.getElementById('totalClicks').textContent = analyticsData.totalClicks.toLocaleString();
+            document.getElementById('totalConversions').textContent = analyticsData.totalConversions.toLocaleString();
+            document.getElementById('totalRevenue').textContent = `$${analyticsData.totalRevenue.toLocaleString()}`;
+            document.getElementById('conversionRate').textContent = `${analyticsData.conversionRate}%`;
+
+            // Calculate and display changes
+            updateChangeIndicator('clicksChange', analyticsData.totalClicks, analyticsData.previousData.clicks);
+            updateChangeIndicator('conversionsChange', analyticsData.totalConversions, analyticsData.previousData.conversions);
+            updateChangeIndicator('revenueChange', analyticsData.totalRevenue, analyticsData.previousData.revenue);
+            updateChangeIndicator('rateChange', parseFloat(analyticsData.conversionRate), analyticsData.previousData.rate);
+        }
+
+        function updateChangeIndicator(elementId, current, previous) {
+            const element = document.getElementById(elementId);
+            if (previous === 0) {
+                element.textContent = '+0%';
+                element.className = 'metric-change positive';
+                return;
+            }
+
+            const change = ((current - previous) / previous * 100).toFixed(1);
+            const isPositive = change >= 0;
+            
+            element.textContent = `${isPositive ? '+' : ''}${change}%`;
+            element.className = `metric-change ${isPositive ? 'positive' : 'negative'}`;
+        }
+
+        function updateChart() {
+            const now = new Date().toLocaleTimeString();
+            
+            // Add new data point
+            analyticsData.timeLabels.push(now);
+            analyticsData.clicksData.push(analyticsData.totalClicks);
+            analyticsData.conversionsData.push(analyticsData.totalConversions);
+
+            // Keep only last 20 data points
+            if (analyticsData.timeLabels.length > 20) {
+                analyticsData.timeLabels.shift();
+                analyticsData.clicksData.shift();
+                analyticsData.conversionsData.shift();
+            }
+
+            realTimeChart.update('none'); // Update without animation for real-time feel
+        }
+
+        function updateChannelPerformance() {
+            const container = document.getElementById('channelMetrics');
+            const maxClicks = Math.max(...Object.values(analyticsData.channels).map(c => c.clicks));
+            
+            container.innerHTML = Object.entries(analyticsData.channels).map(([channel, data]) => {
+                const percentage = maxClicks > 0 ? (data.clicks / maxClicks) * 100 : 0;
+                return `
+                    <div class="channel-bar">
+                        <div class="channel-name">${channel}</div>
+                        <div class="progress-bar">
+                            <div class="progress-fill" style="width: ${percentage}%"></div>
+                        </div>
+                        <div class="channel-value">${data.clicks}</div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function updateActivityFeed() {
+            const container = document.getElementById('activityFeed');
+            
+            if (analyticsData.activities.length === 0) {
+                container.innerHTML = '<div class="activity-item">No recent activity</div>';
+                return;
+            }
+
+            container.innerHTML = analyticsData.activities.map(activity => `
+                <div class="activity-item">
+                    <div>
+                        <div>${activity.text}</div>
+                        <div class="activity-time">${activity.time}</div>
+                    </div>
+                    <div style="color: #059669; font-weight: bold;">${activity.value}</div>
+                </div>
+            `).join('');
+        }
+    </script>
+</body>
+</html>

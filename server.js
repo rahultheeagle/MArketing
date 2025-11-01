@@ -179,6 +179,125 @@ app.get('/api/utm-analytics', (req, res) => {
   res.json(analytics);
 });
 
+// Real-time analytics data
+let realTimeMetrics = {
+  totalClicks: 0,
+  totalConversions: 0,
+  totalRevenue: 0,
+  hourlyData: [],
+  channelData: {
+    'Google Ads': { clicks: 0, conversions: 0, revenue: 0 },
+    'Facebook': { clicks: 0, conversions: 0, revenue: 0 },
+    'Instagram': { clicks: 0, conversions: 0, revenue: 0 },
+    'Email': { clicks: 0, conversions: 0, revenue: 0 },
+    'LinkedIn': { clicks: 0, conversions: 0, revenue: 0 }
+  },
+  recentActivity: []
+};
+
+// Get real-time analytics
+app.get('/api/real-time-analytics', (req, res) => {
+  // Simulate real-time data updates
+  const clicksIncrease = Math.floor(Math.random() * 10) + 1;
+  const conversionsIncrease = Math.floor(Math.random() * 3);
+  const revenueIncrease = Math.floor(Math.random() * 150) + 10;
+  
+  realTimeMetrics.totalClicks += clicksIncrease;
+  realTimeMetrics.totalConversions += conversionsIncrease;
+  realTimeMetrics.totalRevenue += revenueIncrease;
+  
+  // Update channel data
+  Object.keys(realTimeMetrics.channelData).forEach(channel => {
+    realTimeMetrics.channelData[channel].clicks += Math.floor(Math.random() * 3);
+    realTimeMetrics.channelData[channel].conversions += Math.floor(Math.random() * 1);
+    realTimeMetrics.channelData[channel].revenue += Math.floor(Math.random() * 30);
+  });
+  
+  // Add hourly data point
+  const now = new Date();
+  realTimeMetrics.hourlyData.push({
+    time: now.toISOString(),
+    clicks: realTimeMetrics.totalClicks,
+    conversions: realTimeMetrics.totalConversions,
+    revenue: realTimeMetrics.totalRevenue
+  });
+  
+  // Keep only last 24 hours of data
+  if (realTimeMetrics.hourlyData.length > 24) {
+    realTimeMetrics.hourlyData.shift();
+  }
+  
+  // Add recent activity
+  const activities = [
+    'New click from Google Ads campaign',
+    'Conversion from Facebook ad',
+    'Email newsletter click',
+    'Instagram story engagement',
+    'LinkedIn sponsored content click'
+  ];
+  
+  if (Math.random() > 0.4) {
+    realTimeMetrics.recentActivity.unshift({
+      text: activities[Math.floor(Math.random() * activities.length)],
+      timestamp: now.toISOString(),
+      value: Math.floor(Math.random() * 100) + 10
+    });
+    
+    // Keep only last 50 activities
+    if (realTimeMetrics.recentActivity.length > 50) {
+      realTimeMetrics.recentActivity = realTimeMetrics.recentActivity.slice(0, 50);
+    }
+  }
+  
+  const conversionRate = realTimeMetrics.totalClicks > 0 ? 
+    ((realTimeMetrics.totalConversions / realTimeMetrics.totalClicks) * 100).toFixed(2) : 0;
+  
+  res.json({
+    ...realTimeMetrics,
+    conversionRate,
+    timestamp: now.toISOString()
+  });
+});
+
+// WebSocket-like endpoint for live updates
+app.get('/api/live-metrics', (req, res) => {
+  res.setHeader('Content-Type', 'text/event-stream');
+  res.setHeader('Cache-Control', 'no-cache');
+  res.setHeader('Connection', 'keep-alive');
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  
+  const sendUpdate = () => {
+    const data = {
+      clicks: realTimeMetrics.totalClicks + Math.floor(Math.random() * 5),
+      conversions: realTimeMetrics.totalConversions + Math.floor(Math.random() * 2),
+      revenue: realTimeMetrics.totalRevenue + Math.floor(Math.random() * 50),
+      timestamp: new Date().toISOString()
+    };
+    
+    res.write(`data: ${JSON.stringify(data)}\n\n`);
+  };
+  
+  // Send initial data
+  sendUpdate();
+  
+  // Send updates every 3 seconds
+  const interval = setInterval(sendUpdate, 3000);
+  
+  // Clean up on client disconnect
+  req.on('close', () => {
+    clearInterval(interval);
+  });
+});
+
+// Initialize real-time metrics with some sample data
+setInterval(() => {
+  // Simulate background activity
+  realTimeMetrics.totalClicks += Math.floor(Math.random() * 3);
+  realTimeMetrics.totalConversions += Math.floor(Math.random() * 1);
+  realTimeMetrics.totalRevenue += Math.floor(Math.random() * 25);
+}, 10000); // Update every 10 seconds
+
 app.listen(PORT, () => {
   console.log(`Campaign Hub API running on port ${PORT}`);
+  console.log(`Real-time Analytics available at http://localhost:${PORT}`);
 });

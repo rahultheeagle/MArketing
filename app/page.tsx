@@ -2,71 +2,211 @@ import Link from 'next/link';
 
 export default function HomePage() {
   return (
-    <div className="text-center py-10 md:py-20 px-4 bg-white">
-      <h1 className="text-3xl md:text-5xl font-bold text-gray-900 mb-6">
-        Welcome to CampaignPulse
-      </h1>
-      <p className="text-lg md:text-xl text-gray-700 mb-8 max-w-2xl mx-auto">
-        Multi-channel marketing campaign analytics dashboard with AI-powered insights, 
-        competitor tracking, and real-time performance monitoring.
-      </p>
-      
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-4xl mx-auto mb-12">
-        <Link href="/dashboard/analytics" className="bg-gradient-to-br from-blue-50 to-blue-100 p-6 rounded-xl border-l-4 border-blue-500 hover:shadow-xl hover:from-blue-100 hover:to-blue-200 transition-all cursor-pointer group">
-          <div className="flex items-start justify-between mb-4">
-            <div className="w-12 h-12 bg-blue-500 rounded-full flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
-              <svg className="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-              </svg>
-            </div>
-            <span className="text-xs bg-blue-500 text-white px-2 py-1 rounded-full font-medium">LIVE</span>
-          </div>
-          <h3 className="text-xl font-bold text-gray-900 mb-2">Real-time Analytics</h3>
-          <p className="text-gray-700 text-sm leading-relaxed">Track campaign performance across all channels with live updates</p>
-        </Link>
-        <Link href="/dashboard/competitors" className="bg-white p-6 rounded-2xl shadow-lg border-2 border-gray-100 hover:border-green-300 hover:shadow-2xl transition-all cursor-pointer group relative overflow-hidden">
-          <div className="absolute top-0 right-0 w-20 h-20 bg-green-50 rounded-full -mr-10 -mt-10"></div>
-          <div className="relative">
-            <div className="w-14 h-14 bg-gradient-to-r from-green-400 to-green-600 rounded-lg flex items-center justify-center mb-4 group-hover:rotate-6 transition-transform">
-              <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-              </svg>
-            </div>
-            <h3 className="text-xl font-bold text-gray-900 mb-2">Competitor Tracking</h3>
-            <p className="text-gray-700 text-sm leading-relaxed">Monitor competitor campaigns and analyze market positioning</p>
-            <div className="mt-4 flex items-center text-green-600 text-sm font-medium">
-              <span className="w-2 h-2 bg-green-500 rounded-full mr-2 animate-pulse"></span>
-              Active Monitoring
-            </div>
-          </div>
-        </Link>
-        <Link href="/dashboard/autopilot" className="bg-gray-900 p-6 rounded-3xl text-white hover:bg-gray-800 transition-all cursor-pointer group relative">
-          <div className="absolute inset-0 bg-gradient-to-r from-purple-600/20 to-pink-600/20 rounded-3xl opacity-0 group-hover:opacity-100 transition-opacity"></div>
-          <div className="relative">
-            <div className="flex items-center justify-between mb-4">
-              <div className="w-16 h-16 bg-gradient-to-r from-purple-500 to-pink-500 rounded-2xl flex items-center justify-center group-hover:scale-105 transition-transform">
-                <svg className="w-9 h-9 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
-                </svg>
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 py-12 px-4">
+      <div className="max-w-7xl mx-auto">
+        <div className="text-center mb-16">
+          <h1 className="text-4xl md:text-6xl font-black text-gray-900 mb-6 tracking-tight">
+            Campaign<span className="text-blue-600">Pulse</span>
+          </h1>
+          <p className="text-xl md:text-2xl text-gray-600 mb-8 max-w-3xl mx-auto font-light">
+            Enterprise marketing analytics platform trusted by 10,000+ businesses worldwide
+          </p>
+        </div>
+        
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-16">
+          {/* Analytics Card */}
+          <Link href="/dashboard/analytics" className="group block">
+            <div className="relative bg-white rounded-2xl p-8 shadow-xl hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-2 hover:rotate-1 border border-gray-100">
+              <div className="absolute -top-4 -right-4 w-16 h-16 bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl shadow-lg transform rotate-12 group-hover:rotate-45 transition-transform duration-500">
+                <div className="w-full h-full flex items-center justify-center">
+                  <svg className="w-8 h-8 text-white" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8V11h-8v10zm0-18v6h8V3h-8z"/>
+                  </svg>
+                </div>
               </div>
-              <div className="text-right">
-                <div className="text-xs text-purple-300 font-medium">POWERED BY</div>
-                <div className="text-sm text-white font-bold">AI ENGINE</div>
+              <div className="mb-6">
+                <div className="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-green-100 text-green-800 mb-4">
+                  <div className="w-2 h-2 bg-green-500 rounded-full mr-2 animate-pulse"></div>
+                  REAL-TIME
+                </div>
+                <h3 className="text-2xl font-bold text-gray-900 mb-3">Analytics Dashboard</h3>
+                <p className="text-gray-600 leading-relaxed">Advanced performance tracking with machine learning insights and predictive analytics</p>
+              </div>
+              <div className="flex items-center justify-between text-sm text-gray-500">
+                <span>Live Data</span>
+                <div className="flex items-center">
+                  <span className="mr-2">View Dashboard</span>
+                  <svg className="w-4 h-4 transform group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                  </svg>
+                </div>
               </div>
             </div>
-            <h3 className="text-xl font-bold mb-2">AI Insights</h3>
-            <p className="text-gray-300 text-sm leading-relaxed">Get automated recommendations and performance scoring</p>
-          </div>
-        </Link>
+          </Link>
+
+          {/* Campaigns Card */}
+          <Link href="/dashboard/campaigns" className="group block">
+            <div className="relative bg-white rounded-2xl p-8 shadow-xl hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-2 hover:-rotate-1 border border-gray-100">
+              <div className="absolute -top-4 -left-4 w-16 h-16 bg-gradient-to-br from-purple-500 to-purple-600 rounded-2xl shadow-lg transform -rotate-12 group-hover:-rotate-45 transition-transform duration-500">
+                <div className="w-full h-full flex items-center justify-center">
+                  <svg className="w-8 h-8 text-white" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-5 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z"/>
+                  </svg>
+                </div>
+              </div>
+              <div className="mb-6">
+                <div className="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-purple-100 text-purple-800 mb-4">
+                  CAMPAIGN MANAGER
+                </div>
+                <h3 className="text-2xl font-bold text-gray-900 mb-3">Multi-Channel Campaigns</h3>
+                <p className="text-gray-600 leading-relaxed">Create, manage, and optimize campaigns across Google, Facebook, LinkedIn, and more</p>
+              </div>
+              <div className="flex items-center justify-between text-sm text-gray-500">
+                <span>Full CRUD</span>
+                <div className="flex items-center">
+                  <span className="mr-2">Manage Campaigns</span>
+                  <svg className="w-4 h-4 transform group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                  </svg>
+                </div>
+              </div>
+            </div>
+          </Link>
+
+          {/* Competitors Card */}
+          <Link href="/dashboard/competitors" className="group block">
+            <div className="relative bg-white rounded-2xl p-8 shadow-xl hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-2 hover:rotate-1 border border-gray-100">
+              <div className="absolute -top-4 -right-4 w-16 h-16 bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-2xl shadow-lg transform rotate-12 group-hover:rotate-45 transition-transform duration-500">
+                <div className="w-full h-full flex items-center justify-center">
+                  <svg className="w-8 h-8 text-white" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"/>
+                  </svg>
+                </div>
+              </div>
+              <div className="mb-6">
+                <div className="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-800 mb-4">
+                  COMPETITIVE INTEL
+                </div>
+                <h3 className="text-2xl font-bold text-gray-900 mb-3">Market Intelligence</h3>
+                <p className="text-gray-600 leading-relaxed">Monitor competitor strategies, ad spend, and market positioning in real-time</p>
+              </div>
+              <div className="flex items-center justify-between text-sm text-gray-500">
+                <span>Live Monitoring</span>
+                <div className="flex items-center">
+                  <span className="mr-2">Track Competitors</span>
+                  <svg className="w-4 h-4 transform group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                  </svg>
+                </div>
+              </div>
+            </div>
+          </Link>
+
+          {/* Autopilot Card */}
+          <Link href="/dashboard/autopilot" className="group block">
+            <div className="relative bg-gradient-to-br from-gray-900 to-gray-800 rounded-2xl p-8 shadow-xl hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-2 hover:-rotate-1 text-white">
+              <div className="absolute -top-4 -left-4 w-16 h-16 bg-gradient-to-br from-orange-500 to-red-500 rounded-2xl shadow-lg transform -rotate-12 group-hover:-rotate-45 transition-transform duration-500">
+                <div className="w-full h-full flex items-center justify-center">
+                  <svg className="w-8 h-8 text-white" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                  </svg>
+                </div>
+              </div>
+              <div className="mb-6">
+                <div className="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-orange-500/20 text-orange-300 mb-4">
+                  <div className="w-2 h-2 bg-orange-400 rounded-full mr-2 animate-pulse"></div>
+                  AI POWERED
+                </div>
+                <h3 className="text-2xl font-bold mb-3">Autopilot Engine</h3>
+                <p className="text-gray-300 leading-relaxed">Automated campaign optimization with machine learning and smart bidding strategies</p>
+              </div>
+              <div className="flex items-center justify-between text-sm text-gray-400">
+                <span>Smart Automation</span>
+                <div className="flex items-center">
+                  <span className="mr-2">Enable Autopilot</span>
+                  <svg className="w-4 h-4 transform group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                  </svg>
+                </div>
+              </div>
+            </div>
+          </Link>
+
+          {/* Reports Card */}
+          <Link href="/dashboard/reports" className="group block">
+            <div className="relative bg-white rounded-2xl p-8 shadow-xl hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-2 hover:rotate-1 border border-gray-100">
+              <div className="absolute -top-4 -right-4 w-16 h-16 bg-gradient-to-br from-indigo-500 to-indigo-600 rounded-2xl shadow-lg transform rotate-12 group-hover:rotate-45 transition-transform duration-500">
+                <div className="w-full h-full flex items-center justify-center">
+                  <svg className="w-8 h-8 text-white" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 2 2h8c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z"/>
+                  </svg>
+                </div>
+              </div>
+              <div className="mb-6">
+                <div className="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-indigo-100 text-indigo-800 mb-4">
+                  AUTOMATED REPORTS
+                </div>
+                <h3 className="text-2xl font-bold text-gray-900 mb-3">Executive Reports</h3>
+                <p className="text-gray-600 leading-relaxed">Scheduled reports with custom branding, white-label options, and executive summaries</p>
+              </div>
+              <div className="flex items-center justify-between text-sm text-gray-500">
+                <span>PDF, Excel, CSV</span>
+                <div className="flex items-center">
+                  <span className="mr-2">Generate Reports</span>
+                  <svg className="w-4 h-4 transform group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                  </svg>
+                </div>
+              </div>
+            </div>
+          </Link>
+
+          {/* Integrations Card */}
+          <Link href="/dashboard/integrations" className="group block">
+            <div className="relative bg-white rounded-2xl p-8 shadow-xl hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-2 hover:-rotate-1 border border-gray-100">
+              <div className="absolute -top-4 -left-4 w-16 h-16 bg-gradient-to-br from-teal-500 to-teal-600 rounded-2xl shadow-lg transform -rotate-12 group-hover:-rotate-45 transition-transform duration-500">
+                <div className="w-full h-full flex items-center justify-center">
+                  <svg className="w-8 h-8 text-white" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+                  </svg>
+                </div>
+              </div>
+              <div className="mb-6">
+                <div className="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-teal-100 text-teal-800 mb-4">
+                  PLATFORM SYNC
+                </div>
+                <h3 className="text-2xl font-bold text-gray-900 mb-3">Platform Integrations</h3>
+                <p className="text-gray-600 leading-relaxed">Connect with Google Ads, Facebook, LinkedIn, TikTok, and 50+ marketing platforms</p>
+              </div>
+              <div className="flex items-center justify-between text-sm text-gray-500">
+                <span>50+ Platforms</span>
+                <div className="flex items-center">
+                  <span className="mr-2">Connect Platforms</span>
+                  <svg className="w-4 h-4 transform group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                  </svg>
+                </div>
+              </div>
+            </div>
+          </Link>
+        </div>
+        
+        <div className="text-center">
+          <Link 
+            href="/dashboard" 
+            className="inline-flex items-center px-8 py-4 bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-bold text-lg rounded-2xl shadow-xl hover:shadow-2xl transform hover:scale-105 transition-all duration-300 hover:from-blue-700 hover:to-indigo-700"
+          >
+            <svg className="w-6 h-6 mr-3" fill="currentColor" viewBox="0 0 24 24">
+              <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+            </svg>
+            Launch CampaignPulse Dashboard
+            <svg className="w-5 h-5 ml-3 transform group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+            </svg>
+          </Link>
+          <p className="text-gray-500 mt-4 text-sm">Trusted by 10,000+ marketing teams worldwide</p>
+        </div>
       </div>
-      
-      <Link 
-        href="/dashboard" 
-        className="btn-primary text-base md:text-lg px-6 md:px-8 py-2 md:py-3 inline-block transform hover:scale-105 active:scale-95 transition-all shadow-lg hover:shadow-xl"
-      >
-        🚀 Launch Dashboard
-      </Link>
     </div>
   );
 }

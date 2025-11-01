@@ -11,7 +11,9 @@ export default function CampaignsPage() {
   
   useEffect(() => {
     const unsubscribe = store.subscribe(() => {
-      setCampaigns(store.getCampaigns());
+      const newCampaigns = store.getCampaigns();
+      console.log('Campaigns updated:', newCampaigns);
+      setCampaigns(newCampaigns);
       setLastUpdated(new Date());
     });
     
@@ -101,8 +103,8 @@ export default function CampaignsPage() {
                     clicks: 0,
                     conversions: 0
                   };
-                  const updatedCampaigns = [...campaigns, campaign];
-                  store.updateCampaigns(updatedCampaigns);
+                  store.addCampaign(campaign);
+                  console.log('Added new campaign:', campaign);
                   setNewCampaign({ name: '', budget: 0 });
                   setShowCreateForm(false);
                 }
@@ -165,6 +167,7 @@ export default function CampaignsPage() {
                               ? {...c, status: c.status === 'active' ? 'paused' : 'active'}
                               : c
                           );
+                          console.log('Updating campaign status:', updatedCampaigns);
                           store.updateCampaigns(updatedCampaigns);
                         }}
                         className="btn-secondary text-xs px-2 py-1"

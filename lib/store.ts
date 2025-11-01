@@ -23,7 +23,12 @@ export const store = {
   getCampaigns: () => campaigns,
   
   updateCampaigns: (newCampaigns: Campaign[]) => {
-    campaigns = newCampaigns;
+    campaigns = [...newCampaigns];
+    subscribers.forEach(callback => callback());
+  },
+  
+  addCampaign: (campaign: Campaign) => {
+    campaigns = [...campaigns, campaign];
     subscribers.forEach(callback => callback());
   },
   
@@ -49,11 +54,12 @@ export const store = {
   },
   
   updateCampaignClicks: () => {
-    campaigns = campaigns.map(campaign => ({
+    campaigns = [...campaigns.map(campaign => ({
       ...campaign,
       clicks: campaign.clicks + Math.floor(Math.random() * 20) + 5,
       spent: Math.min(campaign.budget, campaign.spent + Math.floor(Math.random() * 1000) + 200)
-    }));
+    }))];
+    console.log('Updated campaigns:', campaigns);
     subscribers.forEach(callback => callback());
   }
 };

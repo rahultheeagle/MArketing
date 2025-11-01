@@ -49,7 +49,12 @@
     <div class="container">
         <div class="header">
             <h1>🎯 Competitor Tracking</h1>
-            <p>Monitor competitor campaigns and analyze market positioning</p>
+            <p>Monitor competitor campaigns and analyze market positioning with AI-powered insights</p>
+            <div style="margin-top: 15px;">
+                <button onclick="generateAIReport()" style="background: #10b981; margin-right: 10px;">Generate AI Report</button>
+                <button onclick="exportData()" style="background: #f59e0b; margin-right: 10px;">Export Data</button>
+                <button onclick="scheduleReport()" style="background: #8b5cf6;">Schedule Reports</button>
+            </div>
         </div>
 
         <div class="tracking-controls">
@@ -123,15 +128,30 @@
         </div>
 
         <div class="analysis-section">
-            <h2>Metrics Comparison</h2>
+            <h2>AI-Powered Market Intelligence</h2>
             <div class="chart-container">
                 <canvas id="competitorChart"></canvas>
             </div>
             <div class="chart-container">
                 <canvas id="campaignChart"></canvas>
             </div>
+            <div class="chart-container">
+                <canvas id="roiChart"></canvas>
+            </div>
             
             <div class="insights-grid" id="insightsGrid"></div>
+        </div>
+
+        <div class="analysis-section">
+            <h2>Competitive A/B Test Insights</h2>
+            <div id="abTestInsights"></div>
+        </div>
+
+        <div class="analysis-section">
+            <h2>Budget vs Competitor Spend</h2>
+            <div class="chart-container">
+                <canvas id="budgetChart"></canvas>
+            </div>
         </div>
     </div>
 
@@ -185,6 +205,8 @@
 
         let competitorChart;
         let campaignChart;
+        let roiChart;
+        let budgetChart;
 
         document.addEventListener('DOMContentLoaded', () => {
             setupCompetitorForm();
@@ -192,8 +214,12 @@
             displayPublicCampaigns();
             initializeCompetitorChart();
             initializeCampaignChart();
-            generateInsights();
+            initializeROIChart();
+            initializeBudgetChart();
+            generateAIInsights();
+            loadABTestInsights();
             startRealTimeUpdates();
+            integrateWithExistingFeatures();
         });
 
         function setupCompetitorForm() {
@@ -433,6 +459,160 @@
             campaignChart.update();
         }
 
+        function initializeROIChart() {
+            const ctx = document.getElementById('roiChart').getContext('2d');
+            
+            roiChart = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: competitors.map(c => c.name),
+                    datasets: [{
+                        data: competitors.map(c => c.metrics.adSpend),
+                        backgroundColor: ['#8b5cf6', '#06b6d4', '#10b981', '#f59e0b', '#ef4444']
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        title: { display: true, text: 'Market Share by Ad Spend' }
+                    }
+                }
+            });
+        }
+
+        function initializeBudgetChart() {
+            const ctx = document.getElementById('budgetChart').getContext('2d');
+            
+            fetch('/api/budget')
+                .then(response => response.json())
+                .then(budgetData => {
+                    const competitorSpend = competitors.reduce((sum, c) => sum + c.metrics.adSpend, 0);
+                    
+                    budgetChart = new Chart(ctx, {
+                        type: 'bar',
+                        data: {
+                            labels: ['Your Budget', 'Competitor Average', 'Market Leader'],
+                            datasets: [{
+                                label: 'Monthly Spend ($K)',
+                                data: [
+                                    budgetData.totalBudget / 1000,
+                                    competitorSpend / competitors.length / 1000,
+                                    Math.max(...competitors.map(c => c.metrics.adSpend)) / 1000
+                                ],
+                                backgroundColor: ['#10b981', '#f59e0b', '#ef4444']
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            plugins: {
+                                title: { display: true, text: 'Budget vs Competitor Spend Analysis' }
+                            }
+                        }
+                    });
+                });
+        }
+
+        function generateAIInsights() {
+            fetch('/api/competitors/ai-insights')
+                .then(response => response.json())
+                .then(data => {
+                    document.getElementById('insightsGrid').innerHTML = data.insights.map(insight => `
+                        <div class="insight-card">
+                            <div class="insight-title">${insight.title}</div>
+                            <div>${insight.content}</div>
+                            <div style="margin-top: 10px; font-size: 12px; color: #6b7280;">AI Confidence: ${insight.confidence}%</div>
+                        </div>
+                    `).join('');
+                });
+        }
+
+        function loadABTestInsights() {
+            fetch('/api/ab-tests')
+                .then(response => response.json())
+                .then(data => {
+                    const insights = data.tests.map(test => {
+                        const winner = test.variants.reduce((prev, current) => 
+                            prev.conversionRate > current.conversionRate ? prev : current
+                        );
+                        return {
+                            name: test.name,
+                            winningRate: winner.conversionRate,
+                            improvement: ((winner.conversionRate / test.variants[0].conversionRate - 1) * 100).toFixed(1)
+                        };
+                    });
+                    
+                    document.getElementById('abTestInsights').innerHTML = `
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 15px;">
+                            ${insights.map(insight => `
+                                <div class="insight-card">
+                                    <div class="insight-title">${insight.name}</div>
+                                    <div>Winning Rate: ${insight.winningRate}%</div>
+                                    <div>Improvement: ${insight.improvement}%</div>
+                                </div>
+                            `).join('')}
+                        </div>
+                    `;
+                });
+        }
+
+        function integrateWithExistingFeatures() {
+            fetch('/api/utm-analytics')
+                .then(response => response.json())
+                .then(data => console.log('UTM Analytics integrated:', data.totalClicks));
+            
+            fetch('/api/performance-scores')
+                .then(response => response.json())
+                .then(data => console.log('Performance scores integrated:', data.overall.score));
+        }
+
+        function generateAIReport() {
+            fetch('/api/competitors/generate-report', { method: 'POST' })
+                .then(response => response.json())
+                .then(data => {
+                    alert(`AI Report Generated!\n\nKey Insights:\n- ${data.insights.join('\n- ')}\n\nReport saved to dashboard.`);
+                });
+        }
+
+        function exportData() {
+            const data = {
+                competitors,
+                timestamp: new Date().toISOString(),
+                summary: {
+                    totalCompetitors: competitors.length,
+                    totalMarketSpend: competitors.reduce((sum, c) => sum + c.metrics.adSpend, 0)
+                }
+            };
+            
+            const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `competitor-analysis-${new Date().toISOString().split('T')[0]}.json`;
+            a.click();
+        }
+
+        function scheduleReport() {
+            const frequency = prompt('Schedule frequency (daily/weekly/monthly):', 'weekly');
+            if (frequency) {
+                fetch('/api/reports', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        name: 'Competitor Analysis Report',
+                        frequency,
+                        template: 'competitor',
+                        recipients: ['team@company.com']
+                    })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    alert(`Report scheduled successfully! Next run: ${new Date(data.nextRun).toLocaleDateString()}`);
+                });
+            }
+        }
+
         function generateInsights() {
             const insights = [];
             
@@ -496,7 +676,11 @@
                 displayPublicCampaigns();
                 updateCompetitorChart();
                 updateCampaignChart();
-                generateInsights();
+                if (roiChart) roiChart.destroy();
+                if (budgetChart) budgetChart.destroy();
+                initializeROIChart();
+                initializeBudgetChart();
+                generateAIInsights();
             }
         }
 

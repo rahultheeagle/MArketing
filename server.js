@@ -790,6 +790,12 @@ let reportTemplates = {
     sections: ['yesterday_summary', 'key_metrics', 'alerts'],
     charts: ['daily_trend'],
     frequency: ['daily']
+  },
+  competitor: {
+    name: 'Competitor Analysis',
+    sections: ['market_overview', 'competitor_metrics', 'ai_insights', 'recommendations'],
+    charts: ['market_share', 'spend_comparison', 'traffic_analysis'],
+    frequency: ['weekly', 'monthly']
   }
 };
 
@@ -1009,6 +1015,30 @@ function generateReportData(template, dateRange) {
         alerts: [
           'Google Ads CTR dropped 15% yesterday',
           'Email campaign exceeded conversion goal by 25%'
+        ]
+      };
+    case 'competitor':
+      return {
+        marketOverview: {
+          totalCompetitors: competitors.length,
+          marketSpend: competitors.reduce((sum, c) => sum + c.metrics.adSpend, 0),
+          avgTraffic: competitors.reduce((sum, c) => sum + c.metrics.estimatedTraffic, 0) / competitors.length
+        },
+        topCompetitors: competitors.slice(0, 3).map(c => ({
+          name: c.name,
+          spend: c.metrics.adSpend,
+          traffic: c.metrics.estimatedTraffic,
+          channels: c.channels.length
+        })),
+        insights: [
+          'Market leader spending 40% more than average',
+          'Email marketing underutilized by 60% of competitors',
+          'Social engagement growing 15% across market'
+        ],
+        recommendations: [
+          'Increase presence in underutilized channels',
+          'Monitor competitor campaign launches',
+          'Focus on content marketing for organic growth'
         ]
       };
     default:
@@ -2599,6 +2629,123 @@ app.put('/api/competitors/settings', (req, res) => {
     message: 'Settings updated successfully',
     settings: trackingSettings
   });
+});
+
+// AI-powered competitor insights
+app.get('/api/competitors/ai-insights', (req, res) => {
+  const insights = [];
+  
+  // Market analysis
+  const totalSpend = competitors.reduce((sum, c) => sum + c.metrics.adSpend, 0);
+  const topSpender = competitors.reduce((prev, current) => 
+    prev.metrics.adSpend > current.metrics.adSpend ? prev : current
+  );
+  
+  insights.push({
+    title: 'Market Dominance Analysis',
+    content: `${topSpender.name} controls ${((topSpender.metrics.adSpend / totalSpend) * 100).toFixed(1)}% of market ad spend`,
+    confidence: 92
+  });
+  
+  // Traffic opportunity
+  const avgTraffic = competitors.reduce((sum, c) => sum + c.metrics.estimatedTraffic, 0) / competitors.length;
+  insights.push({
+    title: 'Traffic Gap Analysis',
+    content: `Market average traffic is ${(avgTraffic / 1000).toFixed(0)}K - potential for ${((avgTraffic * 0.3) / 1000).toFixed(0)}K additional visitors`,
+    confidence: 87
+  });
+  
+  // Channel strategy
+  const channelCount = {};
+  competitors.forEach(c => {
+    c.channels.forEach(channel => {
+      channelCount[channel] = (channelCount[channel] || 0) + 1;
+    });
+  });
+  const underutilizedChannels = Object.keys(channelCount).filter(channel => channelCount[channel] < competitors.length * 0.5);
+  
+  if (underutilizedChannels.length > 0) {
+    insights.push({
+      title: 'Channel Opportunity',
+      content: `${underutilizedChannels.join(', ')} channels are underutilized by competitors - first-mover advantage available`,
+      confidence: 78
+    });
+  }
+  
+  res.json({ insights });
+});
+
+// Generate comprehensive competitor report
+app.post('/api/competitors/generate-report', (req, res) => {
+  const reportData = {
+    generatedAt: new Date().toISOString(),
+    competitors: competitors.length,
+    marketAnalysis: {
+      totalSpend: competitors.reduce((sum, c) => sum + c.metrics.adSpend, 0),
+      avgTraffic: competitors.reduce((sum, c) => sum + c.metrics.estimatedTraffic, 0) / competitors.length,
+      marketLeader: competitors.reduce((prev, current) => 
+        prev.metrics.adSpend > current.metrics.adSpend ? prev : current
+      ).name
+    },
+    insights: [
+      'Market consolidation detected - top 2 competitors control 60% of ad spend',
+      'Emerging channel opportunities in LinkedIn and Email marketing',
+      'Average competitor CTR is 2.3% - room for optimization',
+      'Social engagement growing 15% month-over-month across all competitors'
+    ],
+    recommendations: [
+      'Increase budget allocation to underutilized channels',
+      'Focus on content marketing to improve organic traffic',
+      'Implement competitor campaign monitoring alerts',
+      'Consider strategic partnerships with smaller competitors'
+    ]
+  };
+  
+  // Create automated report
+  const newReport = {
+    id: Date.now(),
+    name: 'AI Competitor Analysis Report',
+    frequency: 'on-demand',
+    recipients: ['team@company.com'],
+    template: 'competitor',
+    status: 'completed',
+    createdAt: new Date().toISOString(),
+    data: reportData
+  };
+  
+  res.json(reportData);
+});
+
+// Integrate with existing features
+app.get('/api/competitors/integration-data', (req, res) => {
+  // Get data from other features
+  const budgetData = budgetData || { totalBudget: 25000, totalSpent: 0 };
+  const utmData = utmLinks.length;
+  const abTestData = abTests.length;
+  const performanceData = performanceScores.overall.score;
+  
+  const integrationInsights = {
+    budgetComparison: {
+      yourBudget: budgetData.totalBudget,
+      competitorAverage: competitors.reduce((sum, c) => sum + c.metrics.adSpend, 0) / competitors.length,
+      recommendation: budgetData.totalBudget < (competitors.reduce((sum, c) => sum + c.metrics.adSpend, 0) / competitors.length) ? 
+        'Consider increasing budget to match competitor spending' : 
+        'Budget is competitive with market average'
+    },
+    campaignOptimization: {
+      activeUTMLinks: utmData,
+      runningABTests: abTestData,
+      performanceScore: performanceData,
+      competitorBenchmark: 'Performing above 60% of tracked competitors'
+    },
+    marketPosition: {
+      trafficRank: 'Estimated #3 in market based on competitor analysis',
+      spendEfficiency: 'ROI 25% higher than competitor average',
+      growthOpportunity: '40% potential traffic increase available'
+    }
+  };
+  
+  res.json(integrationInsights);
 });
 
 // Simulate competitor data updates

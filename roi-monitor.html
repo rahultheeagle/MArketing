@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ROI Monitor - CampaignPulse</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: Arial, sans-serif; background: #f5f5f5; }
+        .container { max-width: 1400px; margin: 0 auto; padding: 20px; }
+        .header { background: #059669; color: white; padding: 20px; border-radius: 8px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; }
+        .live-badge { background: #22c55e; padding: 5px 15px; border-radius: 20px; font-size: 12px; font-weight: bold; }
+        .roi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; margin-bottom: 20px; }
+        .roi-card { background: white; padding: 20px; border-radius: 8px; text-align: center; position: relative; }
+        .roi-value { font-size: 36px; font-weight: bold; margin-bottom: 10px; }
+        .roi-positive { color: #059669; }
+        .roi-negative { color: #dc2626; }
+        .roi-neutral { color: #6b7280; }
+        .roi-change { font-size: 14px; padding: 4px 8px; border-radius: 4px; margin-top: 5px; }
+        .change-up { background: #dcfce7; color: #166534; }
+        .change-down { background: #fecaca; color: #991b1b; }
+        .monitor-section { background: white; padding: 20px; border-radius: 8px; margin-bottom: 20px; }
+        .metrics-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin: 20px 0; }
+        .metric-box { text-align: center; padding: 15px; background: #f8fafc; border-radius: 8px; }
+        .metric-number { font-size: 28px; font-weight: bold; color: #059669; }
+        .chart-container { height: 300px; margin: 20px 0; }
+        .campaign-list { max-height: 400px; overflow-y: auto; }
+        .campaign-item { display: flex; justify-content: between; align-items: center; padding: 15px; border-bottom: 1px solid #f3f4f6; }
+        .campaign-name { font-weight: bold; flex: 1; }
+        .campaign-metrics { display: flex; gap: 20px; font-size: 14px; }
+        .roi-indicator { width: 60px; height: 20px; border-radius: 10px; display: flex; align-items: center; justify-content: center; color: white; font-size: 12px; font-weight: bold; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div>
+                <h1>ROI Monitor</h1>
+                <p>Real-time clicks, conversions, and ROI tracking</p>
+            </div>
+            <div class="live-badge">🔴 LIVE</div>
+        </div>
+
+        <div class="roi-grid">
+            <div class="roi-card">
+                <div class="roi-value roi-positive" id="totalROI">0%</div>
+                <div>Total ROI</div>
+                <div class="roi-change change-up" id="roiChange">+0%</div>
+            </div>
+            <div class="roi-card">
+                <div class="roi-value" id="totalSpend" style="color: #dc2626;">$0</div>
+                <div>Total Spend</div>
+                <div class="roi-change" id="spendChange">+0%</div>
+            </div>
+            <div class="roi-card">
+                <div class="roi-value" id="totalRevenue" style="color: #059669;">$0</div>
+                <div>Total Revenue</div>
+                <div class="roi-change" id="revenueChange">+0%</div>
+            </div>
+            <div class="roi-card">
+                <div class="roi-value" id="netProfit" style="color: #7c3aed;">$0</div>
+                <div>Net Profit</div>
+                <div class="roi-change" id="profitChange">+0%</div>
+            </div>
+        </div>
+
+        <div class="monitor-section">
+            <h2>Real-time Performance Monitor</h2>
+            <div class="metrics-row">
+                <div class="metric-box">
+                    <div class="metric-number" id="liveClicks">0</div>
+                    <div>Clicks (Live)</div>
+                </div>
+                <div class="metric-box">
+                    <div class="metric-number" id="liveConversions">0</div>
+                    <div>Conversions (Live)</div>
+                </div>
+                <div class="metric-box">
+                    <div class="metric-number" id="conversionRate">0%</div>
+                    <div>Conversion Rate</div>
+                </div>
+            </div>
+            <div class="chart-container">
+                <canvas id="roiChart"></canvas>
+            </div>
+        </div>
+
+        <div class="monitor-section">
+            <h2>Campaign ROI Breakdown</h2>
+            <div class="campaign-list" id="campaignROI"></div>
+        </div>
+    </div>
+
+    <script>
+        let roiChart;
+        let roiData = {
+            totalROI: 0,
+            totalSpend: 0,
+            totalRevenue: 0,
+            netProfit: 0,
+            clicks: 0,
+            conversions: 0,
+            conversionRate: 0,
+            previousData: {},
+            timeData: [],
+            campaigns: [
+                { name: 'Google Ads - Black Friday', spend: 0, revenue: 0, clicks: 0, conversions: 0 },
+                { name: 'Facebook - Holiday Sale', spend: 0, revenue: 0, clicks: 0, conversions: 0 },
+                { name: 'Instagram - Product Launch', spend: 0, revenue: 0, clicks: 0, conversions: 0 },
+                { name: 'Email - Newsletter Campaign', spend: 0, revenue: 0, clicks: 0, conversions: 0 },
+                { name: 'LinkedIn - B2B Outreach', spend: 0, revenue: 0, clicks: 0, conversions: 0 }
+            ]
+        };
+
+        document.addEventListener('DOMContentLoaded', () => {
+            initializeROIChart();
+            startROIMonitoring();
+        });
+
+        function initializeROIChart() {
+            const ctx = document.getElementById('roiChart').getContext('2d');
+            roiChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: [],
+                    datasets: [{
+                        label: 'ROI %',
+                        data: [],
+                        borderColor: '#059669',
+                        backgroundColor: 'rgba(5, 150, 105, 0.1)',
+                        tension: 0.4,
+                        fill: true
+                    }, {
+                        label: 'Revenue',
+                        data: [],
+                        borderColor: '#7c3aed',
+                        backgroundColor: 'rgba(124, 58, 237, 0.1)',
+                        tension: 0.4,
+                        yAxisID: 'y1'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            type: 'linear',
+                            display: true,
+                            position: 'left',
+                            title: { display: true, text: 'ROI %' }
+                        },
+                        y1: {
+                            type: 'linear',
+                            display: true,
+                            position: 'right',
+                            title: { display: true, text: 'Revenue ($)' },
+                            grid: { drawOnChartArea: false }
+                        }
+                    },
+                    plugins: {
+                        legend: { display: true, position: 'top' }
+                    }
+                }
+            });
+        }
+
+        function startROIMonitoring() {
+            setInterval(() => {
+                updateROIData();
+                updateROIDisplay();
+                updateROIChart();
+                updateCampaignBreakdown();
+            }, 2000); // Update every 2 seconds for real-time feel
+
+            updateROIData();
+            updateROIDisplay();
+        }
+
+        function updateROIData() {
+            // Store previous data
+            roiData.previousData = {
+                roi: roiData.totalROI,
+                spend: roiData.totalSpend,
+                revenue: roiData.totalRevenue,
+                profit: roiData.netProfit
+            };
+
+            // Simulate real-time updates
+            const spendIncrease = Math.floor(Math.random() * 50) + 10;
+            const revenueIncrease = Math.floor(Math.random() * 150) + 20;
+            const clicksIncrease = Math.floor(Math.random() * 20) + 5;
+            const conversionsIncrease = Math.floor(Math.random() * 5) + 1;
+
+            roiData.totalSpend += spendIncrease;
+            roiData.totalRevenue += revenueIncrease;
+            roiData.clicks += clicksIncrease;
+            roiData.conversions += conversionsIncrease;
+
+            roiData.netProfit = roiData.totalRevenue - roiData.totalSpend;
+            roiData.totalROI = roiData.totalSpend > 0 ? 
+                ((roiData.netProfit / roiData.totalSpend) * 100).toFixed(1) : 0;
+            roiData.conversionRate = roiData.clicks > 0 ? 
+                ((roiData.conversions / roiData.clicks) * 100).toFixed(1) : 0;
+
+            // Update campaign data
+            roiData.campaigns.forEach(campaign => {
+                campaign.spend += Math.floor(Math.random() * 20) + 5;
+                campaign.revenue += Math.floor(Math.random() * 60) + 10;
+                campaign.clicks += Math.floor(Math.random() * 10) + 2;
+                campaign.conversions += Math.floor(Math.random() * 3);
+            });
+        }
+
+        function updateROIDisplay() {
+            // Update main ROI metrics
+            document.getElementById('totalROI').textContent = `${roiData.totalROI}%`;
+            document.getElementById('totalSpend').textContent = `$${roiData.totalSpend.toLocaleString()}`;
+            document.getElementById('totalRevenue').textContent = `$${roiData.totalRevenue.toLocaleString()}`;
+            document.getElementById('netProfit').textContent = `$${roiData.netProfit.toLocaleString()}`;
+
+            // Update live metrics
+            document.getElementById('liveClicks').textContent = roiData.clicks.toLocaleString();
+            document.getElementById('liveConversions').textContent = roiData.conversions.toLocaleString();
+            document.getElementById('conversionRate').textContent = `${roiData.conversionRate}%`;
+
+            // Update ROI color
+            const roiElement = document.getElementById('totalROI');
+            const roiValue = parseFloat(roiData.totalROI);
+            roiElement.className = `roi-value ${roiValue > 0 ? 'roi-positive' : roiValue < 0 ? 'roi-negative' : 'roi-neutral'}`;
+
+            // Update change indicators
+            updateChangeIndicator('roiChange', roiValue, roiData.previousData.roi || 0);
+            updateChangeIndicator('spendChange', roiData.totalSpend, roiData.previousData.spend || 0);
+            updateChangeIndicator('revenueChange', roiData.totalRevenue, roiData.previousData.revenue || 0);
+            updateChangeIndicator('profitChange', roiData.netProfit, roiData.previousData.profit || 0);
+        }
+
+        function updateChangeIndicator(elementId, current, previous) {
+            const element = document.getElementById(elementId);
+            if (previous === 0) {
+                element.textContent = '+0%';
+                element.className = 'roi-change change-up';
+                return;
+            }
+
+            const change = ((current - previous) / Math.abs(previous) * 100).toFixed(1);
+            const isPositive = change >= 0;
+            
+            element.textContent = `${isPositive ? '+' : ''}${change}%`;
+            element.className = `roi-change ${isPositive ? 'change-up' : 'change-down'}`;
+        }
+
+        function updateROIChart() {
+            const now = new Date().toLocaleTimeString();
+            
+            roiChart.data.labels.push(now);
+            roiChart.data.datasets[0].data.push(parseFloat(roiData.totalROI));
+            roiChart.data.datasets[1].data.push(roiData.totalRevenue);
+
+            // Keep only last 15 data points
+            if (roiChart.data.labels.length > 15) {
+                roiChart.data.labels.shift();
+                roiChart.data.datasets[0].data.shift();
+                roiChart.data.datasets[1].data.shift();
+            }
+
+            roiChart.update('none');
+        }
+
+        function updateCampaignBreakdown() {
+            const container = document.getElementById('campaignROI');
+            
+            container.innerHTML = roiData.campaigns.map(campaign => {
+                const roi = campaign.spend > 0 ? 
+                    (((campaign.revenue - campaign.spend) / campaign.spend) * 100).toFixed(1) : 0;
+                const roiClass = roi > 0 ? 'roi-positive' : roi < 0 ? 'roi-negative' : 'roi-neutral';
+                const indicatorColor = roi > 0 ? '#059669' : roi < 0 ? '#dc2626' : '#6b7280';
+                
+                return `
+                    <div class="campaign-item">
+                        <div class="campaign-name">${campaign.name}</div>
+                        <div class="campaign-metrics">
+                            <div>Clicks: <strong>${campaign.clicks}</strong></div>
+                            <div>Conv: <strong>${campaign.conversions}</strong></div>
+                            <div>Spend: <strong>$${campaign.spend}</strong></div>
+                            <div>Revenue: <strong>$${campaign.revenue}</strong></div>
+                            <div class="roi-indicator" style="background: ${indicatorColor};">
+                                ${roi}%
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+    </script>
+</body>
+</html>

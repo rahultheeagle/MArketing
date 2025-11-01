@@ -289,6 +289,108 @@ app.get('/api/live-metrics', (req, res) => {
   });
 });
 
+// ROI monitoring data
+let roiMetrics = {
+  totalSpend: 0,
+  totalRevenue: 0,
+  totalClicks: 0,
+  totalConversions: 0,
+  campaigns: [
+    { id: 1, name: 'Google Ads - Black Friday', spend: 0, revenue: 0, clicks: 0, conversions: 0 },
+    { id: 2, name: 'Facebook - Holiday Sale', spend: 0, revenue: 0, clicks: 0, conversions: 0 },
+    { id: 3, name: 'Instagram - Product Launch', spend: 0, revenue: 0, clicks: 0, conversions: 0 },
+    { id: 4, name: 'Email - Newsletter Campaign', spend: 0, revenue: 0, clicks: 0, conversions: 0 },
+    { id: 5, name: 'LinkedIn - B2B Outreach', spend: 0, revenue: 0, clicks: 0, conversions: 0 }
+  ]
+};
+
+// Get ROI monitoring data
+app.get('/api/roi-monitor', (req, res) => {
+  // Update metrics with simulated data
+  const spendIncrease = Math.floor(Math.random() * 50) + 10;
+  const revenueIncrease = Math.floor(Math.random() * 150) + 20;
+  const clicksIncrease = Math.floor(Math.random() * 20) + 5;
+  const conversionsIncrease = Math.floor(Math.random() * 5) + 1;
+  
+  roiMetrics.totalSpend += spendIncrease;
+  roiMetrics.totalRevenue += revenueIncrease;
+  roiMetrics.totalClicks += clicksIncrease;
+  roiMetrics.totalConversions += conversionsIncrease;
+  
+  // Update campaign metrics
+  roiMetrics.campaigns.forEach(campaign => {
+    campaign.spend += Math.floor(Math.random() * 20) + 5;
+    campaign.revenue += Math.floor(Math.random() * 60) + 10;
+    campaign.clicks += Math.floor(Math.random() * 10) + 2;
+    campaign.conversions += Math.floor(Math.random() * 3);
+  });
+  
+  const netProfit = roiMetrics.totalRevenue - roiMetrics.totalSpend;
+  const totalROI = roiMetrics.totalSpend > 0 ? 
+    ((netProfit / roiMetrics.totalSpend) * 100).toFixed(2) : 0;
+  const conversionRate = roiMetrics.totalClicks > 0 ? 
+    ((roiMetrics.totalConversions / roiMetrics.totalClicks) * 100).toFixed(2) : 0;
+  
+  // Calculate campaign ROIs
+  const campaignsWithROI = roiMetrics.campaigns.map(campaign => {
+    const campaignProfit = campaign.revenue - campaign.spend;
+    const campaignROI = campaign.spend > 0 ? 
+      ((campaignProfit / campaign.spend) * 100).toFixed(2) : 0;
+    const campaignCR = campaign.clicks > 0 ? 
+      ((campaign.conversions / campaign.clicks) * 100).toFixed(2) : 0;
+    
+    return {
+      ...campaign,
+      roi: parseFloat(campaignROI),
+      profit: campaignProfit,
+      conversionRate: parseFloat(campaignCR)
+    };
+  });
+  
+  res.json({
+    totalSpend: roiMetrics.totalSpend,
+    totalRevenue: roiMetrics.totalRevenue,
+    totalClicks: roiMetrics.totalClicks,
+    totalConversions: roiMetrics.totalConversions,
+    netProfit,
+    totalROI: parseFloat(totalROI),
+    conversionRate: parseFloat(conversionRate),
+    campaigns: campaignsWithROI,
+    timestamp: new Date().toISOString()
+  });
+});
+
+// Track specific ROI event
+app.post('/api/roi-track', (req, res) => {
+  const { campaignId, type, amount } = req.body;
+  
+  const campaign = roiMetrics.campaigns.find(c => c.id === campaignId);
+  if (!campaign) {
+    return res.status(404).json({ error: 'Campaign not found' });
+  }
+  
+  switch(type) {
+    case 'click':
+      campaign.clicks += 1;
+      roiMetrics.totalClicks += 1;
+      break;
+    case 'conversion':
+      campaign.conversions += 1;
+      roiMetrics.totalConversions += 1;
+      if (amount) {
+        campaign.revenue += amount;
+        roiMetrics.totalRevenue += amount;
+      }
+      break;
+    case 'spend':
+      campaign.spend += amount || 0;
+      roiMetrics.totalSpend += amount || 0;
+      break;
+  }
+  
+  res.json({ success: true, campaign });
+});
+
 // Initialize real-time metrics with some sample data
 setInterval(() => {
   // Simulate background activity

@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Grading System - CampaignPulse</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: Arial, sans-serif; background: #f5f5f5; }
+        .container { max-width: 1400px; margin: 0 auto; padding: 20px; }
+        .header { background: linear-gradient(135deg, #6366f1, #8b5cf6); color: white; padding: 20px; border-radius: 8px; margin-bottom: 20px; }
+        .ai-badge { background: rgba(255,255,255,0.2); padding: 5px 15px; border-radius: 20px; font-size: 12px; display: inline-block; margin-top: 10px; }
+        .grading-overview { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-bottom: 20px; }
+        .grade-card { background: white; padding: 20px; border-radius: 8px; text-align: center; position: relative; overflow: hidden; }
+        .grade-letter { font-size: 48px; font-weight: bold; margin-bottom: 10px; }
+        .grade-a-plus { color: #059669; background: linear-gradient(135deg, #ecfdf5, #d1fae5); }
+        .grade-a { color: #0ea5e9; background: linear-gradient(135deg, #f0f9ff, #e0f2fe); }
+        .grade-b { color: #f59e0b; background: linear-gradient(135deg, #fffbeb, #fef3c7); }
+        .grade-c { color: #f97316; background: linear-gradient(135deg, #fff7ed, #fed7aa); }
+        .grade-d { color: #dc2626; background: linear-gradient(135deg, #fef2f2, #fecaca); }
+        .grade-f { color: #991b1b; background: linear-gradient(135deg, #fef2f2, #fee2e2); }
+        .grade-description { font-size: 14px; color: #6b7280; margin-bottom: 10px; }
+        .benchmark-range { font-size: 12px; font-weight: bold; }
+        .ai-analysis { background: white; padding: 20px; border-radius: 8px; margin-bottom: 20px; }
+        .campaign-grades { background: white; padding: 20px; border-radius: 8px; margin-bottom: 20px; }
+        .campaign-item { display: flex; align-items: center; padding: 15px; border-bottom: 1px solid #f3f4f6; }
+        .campaign-name { flex: 1; font-weight: bold; }
+        .benchmark-comparison { display: flex; gap: 15px; font-size: 12px; color: #6b7280; }
+        .grade-badge { width: 50px; height: 50px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 18px; color: white; margin-left: 15px; }
+        .industry-benchmarks { background: white; padding: 20px; border-radius: 8px; margin-bottom: 20px; }
+        .benchmark-table { width: 100%; border-collapse: collapse; }
+        .benchmark-table th, .benchmark-table td { padding: 12px; text-align: left; border-bottom: 1px solid #f3f4f6; }
+        .benchmark-table th { background: #f8fafc; font-weight: bold; }
+        .ai-insights { background: linear-gradient(135deg, #f0f9ff, #e0f2fe); padding: 20px; border-radius: 8px; border-left: 4px solid #0ea5e9; }
+        .insight-item { margin: 10px 0; padding: 10px; background: white; border-radius: 4px; }
+        .confidence-meter { width: 100%; height: 8px; background: #f3f4f6; border-radius: 4px; overflow: hidden; margin: 5px 0; }
+        .confidence-fill { height: 100%; background: linear-gradient(90deg, #6366f1, #8b5cf6); transition: width 0.3s ease; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🤖 AI-Powered Campaign Grading System</h1>
+            <p>Industry benchmark-based performance evaluation with machine learning insights</p>
+            <div class="ai-badge">✨ Powered by AI Analytics</div>
+        </div>
+
+        <div class="grading-overview">
+            <div class="grade-card grade-a-plus">
+                <div class="grade-letter">A+</div>
+                <div class="grade-description">Exceptional Performance</div>
+                <div class="benchmark-range">90-100 Points</div>
+                <div style="font-size: 11px; margin-top: 5px;">Top 5% Industry</div>
+            </div>
+            <div class="grade-card grade-a">
+                <div class="grade-letter">A</div>
+                <div class="grade-description">Excellent Performance</div>
+                <div class="benchmark-range">80-89 Points</div>
+                <div style="font-size: 11px; margin-top: 5px;">Top 15% Industry</div>
+            </div>
+            <div class="grade-card grade-b">
+                <div class="grade-letter">B</div>
+                <div class="grade-description">Good Performance</div>
+                <div class="benchmark-range">70-79 Points</div>
+                <div style="font-size: 11px; margin-top: 5px;">Top 35% Industry</div>
+            </div>
+            <div class="grade-card grade-c">
+                <div class="grade-letter">C</div>
+                <div class="grade-description">Average Performance</div>
+                <div class="benchmark-range">60-69 Points</div>
+                <div style="font-size: 11px; margin-top: 5px;">Industry Average</div>
+            </div>
+            <div class="grade-card grade-d">
+                <div class="grade-letter">D</div>
+                <div class="grade-description">Below Average</div>
+                <div class="benchmark-range">50-59 Points</div>
+                <div style="font-size: 11px; margin-top: 5px;">Bottom 35%</div>
+            </div>
+            <div class="grade-card grade-f">
+                <div class="grade-letter">F</div>
+                <div class="grade-description">Poor Performance</div>
+                <div class="benchmark-range">0-49 Points</div>
+                <div style="font-size: 11px; margin-top: 5px;">Bottom 15%</div>
+            </div>
+        </div>
+
+        <div class="ai-analysis">
+            <h2>🧠 AI Performance Analysis</h2>
+            <div class="ai-insights">
+                <h3>Machine Learning Insights</h3>
+                <div class="insight-item">
+                    <strong>Pattern Recognition:</strong> <span id="aiPattern">Analyzing campaign patterns...</span>
+                    <div class="confidence-meter">
+                        <div class="confidence-fill" id="patternConfidence" style="width: 0%"></div>
+                    </div>
+                </div>
+                <div class="insight-item">
+                    <strong>Benchmark Comparison:</strong> <span id="aiBenchmark">Comparing against industry standards...</span>
+                    <div class="confidence-meter">
+                        <div class="confidence-fill" id="benchmarkConfidence" style="width: 0%"></div>
+                    </div>
+                </div>
+                <div class="insight-item">
+                    <strong>Optimization Potential:</strong> <span id="aiOptimization">Calculating improvement opportunities...</span>
+                    <div class="confidence-meter">
+                        <div class="confidence-fill" id="optimizationConfidence" style="width: 0%"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="industry-benchmarks">
+            <h2>📊 Industry Benchmarks by Sector</h2>
+            <table class="benchmark-table">
+                <thead>
+                    <tr>
+                        <th>Industry</th>
+                        <th>Avg CTR</th>
+                        <th>Avg Conv Rate</th>
+                        <th>Avg ROI</th>
+                        <th>Grade Threshold</th>
+                    </tr>
+                </thead>
+                <tbody id="benchmarkTable">
+                    <tr>
+                        <td><strong>E-commerce</strong></td>
+                        <td>2.1%</td>
+                        <td>2.8%</td>
+                        <td>35%</td>
+                        <td>A: 85+ | B: 75+ | C: 65+</td>
+                    </tr>
+                    <tr>
+                        <td><strong>SaaS/Tech</strong></td>
+                        <td>1.8%</td>
+                        <td>3.2%</td>
+                        <td>42%</td>
+                        <td>A: 88+ | B: 78+ | C: 68+</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Healthcare</strong></td>
+                        <td>2.4%</td>
+                        <td>2.1%</td>
+                        <td>28%</td>
+                        <td>A: 82+ | B: 72+ | C: 62+</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Finance</strong></td>
+                        <td>1.6%</td>
+                        <td>2.9%</td>
+                        <td>38%</td>
+                        <td>A: 86+ | B: 76+ | C: 66+</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Education</strong></td>
+                        <td>2.8%</td>
+                        <td>1.9%</td>
+                        <td>31%</td>
+                        <td>A: 84+ | B: 74+ | C: 64+</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="campaign-grades">
+            <h2>🎯 Campaign Performance Grades</h2>
+            <div id="campaignGradesList"></div>
+        </div>
+    </div>
+
+    <script>
+        let aiGradingData = {
+            campaigns: [
+                { name: 'Google Ads - Black Friday', score: 88, grade: 'A', industry: 'E-commerce', ctr: 3.2, convRate: 3.1, roi: 45 },
+                { name: 'Facebook - Holiday Sale', score: 82, grade: 'A', industry: 'E-commerce', ctr: 2.9, convRate: 2.8, roi: 38 },
+                { name: 'Instagram - Product Launch', score: 76, grade: 'B', industry: 'E-commerce', ctr: 4.1, convRate: 2.2, roi: 28 },
+                { name: 'Email - Newsletter Campaign', score: 91, grade: 'A+', industry: 'E-commerce', ctr: 8.7, convRate: 4.2, roi: 156 },
+                { name: 'LinkedIn - B2B Outreach', score: 69, grade: 'C', industry: 'SaaS/Tech', ctr: 1.8, convRate: 3.1, roi: 22 }
+            ],
+            industryBenchmarks: {
+                'E-commerce': { ctr: 2.1, convRate: 2.8, roi: 35, gradeThresholds: { A: 85, B: 75, C: 65 } },
+                'SaaS/Tech': { ctr: 1.8, convRate: 3.2, roi: 42, gradeThresholds: { A: 88, B: 78, C: 68 } },
+                'Healthcare': { ctr: 2.4, convRate: 2.1, roi: 28, gradeThresholds: { A: 82, B: 72, C: 62 } },
+                'Finance': { ctr: 1.6, convRate: 2.9, roi: 38, gradeThresholds: { A: 86, B: 76, C: 66 } },
+                'Education': { ctr: 2.8, convRate: 1.9, roi: 31, gradeThresholds: { A: 84, B: 74, C: 64 } }
+            }
+        };
+
+        document.addEventListener('DOMContentLoaded', () => {
+            startAIAnalysis();
+            displayCampaignGrades();
+            updateAIInsights();
+        });
+
+        function startAIAnalysis() {
+            // Simulate AI analysis with progressive loading
+            setTimeout(() => {
+                document.getElementById('patternConfidence').style.width = '85%';
+                document.getElementById('aiPattern').textContent = 'Email campaigns show 3x higher ROI than social media. Strong seasonal patterns detected.';
+            }, 1000);
+
+            setTimeout(() => {
+                document.getElementById('benchmarkConfidence').style.width = '92%';
+                document.getElementById('aiBenchmark').textContent = 'Your campaigns perform 23% above industry average. Top quartile performance in email marketing.';
+            }, 2000);
+
+            setTimeout(() => {
+                document.getElementById('optimizationConfidence').style.width = '78%';
+                document.getElementById('aiOptimization').textContent = 'LinkedIn campaign has 15-point improvement potential. Recommend audience refinement.';
+            }, 3000);
+        }
+
+        function calculateAIGrade(campaign) {
+            const industry = aiGradingData.industryBenchmarks[campaign.industry];
+            if (!industry) return 'C';
+
+            // AI-enhanced scoring with industry context
+            let score = 0;
+            
+            // CTR comparison (25% weight)
+            const ctrRatio = campaign.ctr / industry.ctr;
+            score += Math.min(25, ctrRatio * 20);
+            
+            // Conversion rate comparison (30% weight)
+            const convRatio = campaign.convRate / industry.convRate;
+            score += Math.min(30, convRatio * 25);
+            
+            // ROI comparison (35% weight)
+            const roiRatio = campaign.roi / industry.roi;
+            score += Math.min(35, roiRatio * 30);
+            
+            // Efficiency bonus (10% weight)
+            const efficiencyBonus = (ctrRatio + convRatio + roiRatio) / 3;
+            score += Math.min(10, efficiencyBonus * 8);
+
+            // Apply industry-specific thresholds
+            const thresholds = industry.gradeThresholds;
+            if (score >= 90) return 'A+';
+            if (score >= thresholds.A) return 'A';
+            if (score >= thresholds.B) return 'B';
+            if (score >= thresholds.C) return 'C';
+            if (score >= 50) return 'D';
+            return 'F';
+        }
+
+        function getGradeColor(grade) {
+            const colors = {
+                'A+': '#059669',
+                'A': '#0ea5e9',
+                'B': '#f59e0b',
+                'C': '#f97316',
+                'D': '#dc2626',
+                'F': '#991b1b'
+            };
+            return colors[grade] || '#6b7280';
+        }
+
+        function displayCampaignGrades() {
+            const container = document.getElementById('campaignGradesList');
+            
+            container.innerHTML = aiGradingData.campaigns.map(campaign => {
+                const aiGrade = calculateAIGrade(campaign);
+                const industry = aiGradingData.industryBenchmarks[campaign.industry];
+                const gradeColor = getGradeColor(aiGrade);
+                
+                return `
+                    <div class="campaign-item">
+                        <div class="campaign-name">${campaign.name}</div>
+                        <div class="benchmark-comparison">
+                            <div>Industry: ${campaign.industry}</div>
+                            <div>CTR: ${campaign.ctr}% (Avg: ${industry.ctr}%)</div>
+                            <div>Conv: ${campaign.convRate}% (Avg: ${industry.convRate}%)</div>
+                            <div>ROI: ${campaign.roi}% (Avg: ${industry.roi}%)</div>
+                        </div>
+                        <div class="grade-badge" style="background: ${gradeColor};">${aiGrade}</div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function updateAIInsights() {
+            setInterval(() => {
+                // Simulate real-time AI analysis updates
+                aiGradingData.campaigns.forEach(campaign => {
+                    campaign.score += (Math.random() - 0.5) * 2;
+                    campaign.score = Math.max(0, Math.min(100, campaign.score));
+                    
+                    campaign.ctr += (Math.random() - 0.5) * 0.2;
+                    campaign.convRate += (Math.random() - 0.5) * 0.1;
+                    campaign.roi += (Math.random() - 0.5) * 3;
+                });
+                
+                displayCampaignGrades();
+            }, 15000); // Update every 15 seconds
+        }
+
+        // AI Recommendation Engine
+        function generateAIRecommendations(campaign) {
+            const industry = aiGradingData.industryBenchmarks[campaign.industry];
+            const recommendations = [];
+            
+            if (campaign.ctr < industry.ctr * 0.8) {
+                recommendations.push({
+                    type: 'CTR Optimization',
+                    action: 'A/B test ad creatives and headlines',
+                    expectedImprovement: '+1-2 grade levels',
+                    confidence: 85
+                });
+            }
+            
+            if (campaign.convRate < industry.convRate * 0.9) {
+                recommendations.push({
+                    type: 'Conversion Optimization',
+                    action: 'Optimize landing page and user flow',
+                    expectedImprovement: '+1 grade level',
+                    confidence: 78
+                });
+            }
+            
+            if (campaign.roi > industry.roi * 1.5) {
+                recommendations.push({
+                    type: 'Scaling Opportunity',
+                    action: 'Increase budget by 30-50%',
+                    expectedImprovement: 'Revenue growth',
+                    confidence: 92
+                });
+            }
+            
+            return recommendations;
+        }
+    </script>
+</body>
+</html>

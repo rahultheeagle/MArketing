@@ -399,7 +399,190 @@ setInterval(() => {
   realTimeMetrics.totalRevenue += Math.floor(Math.random() * 25);
 }, 10000); // Update every 10 seconds
 
+// Performance Scoring System
+let performanceScores = {
+  overall: { score: 85, grade: 'Excellent', trend: '+3' },
+  categories: {
+    roi: { score: 78, weight: 30 },
+    engagement: { score: 92, weight: 25 },
+    efficiency: { score: 65, weight: 20 },
+    quality: { score: 88, weight: 15 },
+    reach: { score: 74, weight: 10 }
+  },
+  campaigns: [],
+  factors: [
+    { name: 'Return on Investment', weight: 30, score: 78, benchmark: 75 },
+    { name: 'Click-through Rate', weight: 20, score: 85, benchmark: 80 },
+    { name: 'Conversion Rate', weight: 25, score: 82, benchmark: 75 },
+    { name: 'Cost Efficiency', weight: 15, score: 65, benchmark: 70 },
+    { name: 'Audience Engagement', weight: 10, score: 92, benchmark: 85 }
+  ],
+  recommendations: []
+};
+
+// Calculate performance score
+function calculatePerformanceScore(metrics) {
+  const weights = {
+    roi: 0.3,
+    ctr: 0.2,
+    conversionRate: 0.25,
+    efficiency: 0.15,
+    engagement: 0.1
+  };
+  
+  const roiScore = Math.min(100, Math.max(0, (metrics.roi || 0) * 2));
+  const ctrScore = Math.min(100, (metrics.ctr || 0) * 25);
+  const convScore = Math.min(100, (metrics.conversionRate || 0) * 30);
+  const efficiencyScore = Math.min(100, (1000 / (metrics.spend || 1000)) * 50);
+  const engagementScore = Math.min(100, ((metrics.ctr || 0) + (metrics.conversionRate || 0)) * 15);
+  
+  return Math.round(
+    roiScore * weights.roi +
+    ctrScore * weights.ctr +
+    convScore * weights.conversionRate +
+    efficiencyScore * weights.efficiency +
+    engagementScore * weights.engagement
+  );
+}
+
+// Generate recommendations based on scores
+function generateRecommendations(campaigns) {
+  const recommendations = [];
+  
+  campaigns.forEach(campaign => {
+    if (campaign.score < 70) {
+      recommendations.push({
+        title: `Optimize ${campaign.name}`,
+        description: `Score is ${campaign.score}. Focus on improving conversion rate and ROI.`,
+        impact: `+${Math.floor((70 - campaign.score) * 0.8)} points`,
+        priority: campaign.score < 50 ? 'High' : 'Medium',
+        campaign: campaign.name
+      });
+    }
+    
+    if (campaign.ctr < 2.0) {
+      recommendations.push({
+        title: `Improve CTR for ${campaign.name}`,
+        description: `Current CTR is ${campaign.ctr}%. Consider A/B testing ad creatives.`,
+        impact: '+5-8 points',
+        priority: 'Medium',
+        campaign: campaign.name
+      });
+    }
+    
+    if (campaign.roi > 50 && campaign.score > 80) {
+      recommendations.push({
+        title: `Scale ${campaign.name}`,
+        description: `High performance detected. Consider increasing budget by 20-30%.`,
+        impact: '+10-15 points',
+        priority: 'High',
+        campaign: campaign.name
+      });
+    }
+  });
+  
+  return recommendations.slice(0, 6); // Return top 6 recommendations
+}
+
+// Get performance scores
+app.get('/api/performance-scores', (req, res) => {
+  // Update campaign scores based on current data
+  const campaignScores = campaigns.map(campaign => {
+    const metrics = {
+      roi: ((campaign.metrics.conversions * 50 - campaign.budget) / campaign.budget) * 100,
+      ctr: (campaign.metrics.clicks / campaign.metrics.impressions) * 100,
+      conversionRate: (campaign.metrics.conversions / campaign.metrics.clicks) * 100,
+      spend: campaign.budget,
+      engagement: (campaign.metrics.clicks + campaign.metrics.conversions) / 2
+    };
+    
+    const score = calculatePerformanceScore(metrics);
+    
+    return {
+      id: campaign.id,
+      name: campaign.name,
+      score,
+      grade: score >= 85 ? 'Excellent' : score >= 70 ? 'Good' : score >= 50 ? 'Average' : 'Poor',
+      metrics,
+      trend: Math.random() > 0.5 ? '+' : '-' + Math.floor(Math.random() * 5)
+    };
+  });
+  
+  // Calculate overall score
+  const overallScore = campaignScores.length > 0 ? 
+    Math.round(campaignScores.reduce((sum, c) => sum + c.score, 0) / campaignScores.length) : 0;
+  
+  // Generate recommendations
+  const recommendations = generateRecommendations(campaignScores);
+  
+  // Update performance scores
+  performanceScores.overall.score = overallScore;
+  performanceScores.overall.grade = overallScore >= 85 ? 'Excellent' : overallScore >= 70 ? 'Good' : overallScore >= 50 ? 'Average' : 'Poor';
+  performanceScores.campaigns = campaignScores;
+  performanceScores.recommendations = recommendations;
+  
+  // Simulate factor score updates
+  performanceScores.factors.forEach(factor => {
+    factor.score += (Math.random() - 0.5) * 4;
+    factor.score = Math.max(0, Math.min(100, factor.score));
+  });
+  
+  res.json({
+    ...performanceScores,
+    timestamp: new Date().toISOString(),
+    totalCampaigns: campaignScores.length,
+    averageScore: overallScore
+  });
+});
+
+// Get detailed campaign analysis
+app.get('/api/campaign-analysis/:id', (req, res) => {
+  const { id } = req.params;
+  const campaign = campaigns.find(c => c.id === id);
+  
+  if (!campaign) {
+    return res.status(404).json({ error: 'Campaign not found' });
+  }
+  
+  const metrics = {
+    roi: ((campaign.metrics.conversions * 50 - campaign.budget) / campaign.budget) * 100,
+    ctr: (campaign.metrics.clicks / campaign.metrics.impressions) * 100,
+    conversionRate: (campaign.metrics.conversions / campaign.metrics.clicks) * 100,
+    spend: campaign.budget,
+    engagement: (campaign.metrics.clicks + campaign.metrics.conversions) / 2
+  };
+  
+  const score = calculatePerformanceScore(metrics);
+  
+  const analysis = {
+    campaign: campaign.name,
+    score,
+    grade: score >= 85 ? 'Excellent' : score >= 70 ? 'Good' : score >= 50 ? 'Average' : 'Poor',
+    metrics,
+    strengths: [],
+    weaknesses: [],
+    opportunities: []
+  };
+  
+  // Analyze strengths and weaknesses
+  if (metrics.roi > 30) analysis.strengths.push('High ROI performance');
+  if (metrics.ctr > 3) analysis.strengths.push('Strong click-through rate');
+  if (metrics.conversionRate > 2.5) analysis.strengths.push('Good conversion rate');
+  
+  if (metrics.roi < 20) analysis.weaknesses.push('Low ROI needs improvement');
+  if (metrics.ctr < 2) analysis.weaknesses.push('CTR below industry average');
+  if (metrics.conversionRate < 1.5) analysis.weaknesses.push('Conversion rate needs optimization');
+  
+  // Generate opportunities
+  if (score > 80) analysis.opportunities.push('Consider scaling budget');
+  if (metrics.ctr > 4) analysis.opportunities.push('Test similar audiences');
+  if (metrics.roi > 40) analysis.opportunities.push('Expand to similar channels');
+  
+  res.json(analysis);
+});
+
 app.listen(PORT, () => {
   console.log(`Campaign Hub API running on port ${PORT}`);
   console.log(`Real-time Analytics available at http://localhost:${PORT}`);
+  console.log(`Performance Scoring available at http://localhost:${PORT}`);
 });

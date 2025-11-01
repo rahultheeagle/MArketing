@@ -5,18 +5,36 @@ import { store } from '@/lib/store';
 
 export default function CampaignsPage() {
   const [campaigns, setCampaigns] = useState(store.getCampaigns());
+  const [lastUpdated, setLastUpdated] = useState(new Date());
   
   useEffect(() => {
     const unsubscribe = store.subscribe(() => {
       setCampaigns(store.getCampaigns());
+      setLastUpdated(new Date());
     });
-    return unsubscribe;
+    
+    const interval = setInterval(() => {
+      store.updateCampaignClicks();
+    }, 2000);
+    
+    return () => {
+      unsubscribe();
+      clearInterval(interval);
+    };
   }, []);
   return (
     <div className="space-y-6">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <h1 className="text-2xl md:text-3xl font-bold text-gray-800">Campaigns</h1>
-        <button className="btn-primary w-full md:w-auto">Create Campaign</button>
+        <div className="flex items-center space-x-4">
+          <div className="flex items-center space-x-2">
+            <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+            <div className="text-sm text-gray-500">
+              Updated: {lastUpdated.toLocaleTimeString()}
+            </div>
+          </div>
+          <button className="btn-primary">Create Campaign</button>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4 md:gap-6">
@@ -26,19 +44,19 @@ export default function CampaignsPage() {
         </div>
         <div className="metric-card">
           <h3 className="text-sm font-medium text-gray-500 mb-2">Active</h3>
-          <div className="text-xl md:text-2xl font-bold text-green-600">
+          <div className="text-xl md:text-2xl font-bold text-green-700">
             {campaigns.filter(c => c.status === 'active').length}
           </div>
         </div>
         <div className="metric-card">
           <h3 className="text-sm font-medium text-gray-500 mb-2">Total Budget</h3>
-          <div className="text-xl md:text-2xl font-bold text-purple-600">
+          <div className="text-xl md:text-2xl font-bold text-blue-700">
             ₹{campaigns.reduce((sum, c) => sum + c.budget, 0).toLocaleString()}
           </div>
         </div>
         <div className="metric-card">
           <h3 className="text-sm font-medium text-gray-500 mb-2">Total Spent</h3>
-          <div className="text-xl md:text-2xl font-bold text-orange-600">
+          <div className="text-xl md:text-2xl font-bold text-orange-700">
             ₹{campaigns.reduce((sum, c) => sum + c.spent, 0).toLocaleString()}
           </div>
         </div>

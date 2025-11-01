@@ -1,58 +1,42 @@
-import { Suspense } from 'react';
-import { db, competitors } from '@/lib/db';
-import { redis, connectRedis, cacheKey } from '@/lib/redis';
-import { desc } from 'drizzle-orm';
 import CompetitorGrid from '@/app/components/CompetitorGrid';
 
-async function getCompetitorData() {
-  await connectRedis();
-  
-  const cached = await redis.get(cacheKey('competitors:dashboard'));
-  if (cached) return JSON.parse(cached);
+const competitorList = [
+  {
+    id: 1,
+    name: 'TechRival Corp',
+    url: 'https://techrival.com',
+    industry: 'SaaS',
+    channels: ['google-ads', 'linkedin', 'email'],
+    metrics: { adSpend: 45000, estimatedTraffic: 125000 },
+    status: 'active',
+    createdAt: new Date()
+  },
+  {
+    id: 2,
+    name: 'MarketLeader Inc',
+    url: 'https://marketleader.com',
+    industry: 'E-commerce',
+    channels: ['google-ads', 'facebook', 'instagram'],
+    metrics: { adSpend: 78000, estimatedTraffic: 280000 },
+    status: 'active',
+    createdAt: new Date()
+  }
+];
 
-  // Mock competitor data for development
-  const competitorList = [
-    {
-      id: 1,
-      name: 'TechRival Corp',
-      url: 'https://techrival.com',
-      industry: 'SaaS',
-      channels: ['google-ads', 'linkedin', 'email'],
-      metrics: { adSpend: 45000, estimatedTraffic: 125000 },
-      status: 'active',
-      createdAt: new Date()
-    },
-    {
-      id: 2,
-      name: 'MarketLeader Inc',
-      url: 'https://marketleader.com',
-      industry: 'E-commerce',
-      channels: ['google-ads', 'facebook', 'instagram'],
-      metrics: { adSpend: 78000, estimatedTraffic: 280000 },
-      status: 'active',
-      createdAt: new Date()
-    }
-  ];
+const competitorData = {
+  competitors: competitorList,
+  summary: {
+    total: competitorList.length,
+    active: competitorList.filter(c => c.status === 'active').length,
+    totalSpend: competitorList.reduce((sum, c) => {
+      const metrics = c.metrics as any;
+      return sum + (metrics?.adSpend || 0);
+    }, 0)
+  }
+};
 
-  const data = {
-    competitors: competitorList,
-    summary: {
-      total: competitorList.length,
-      active: competitorList.filter(c => c.status === 'active').length,
-      totalSpend: competitorList.reduce((sum, c) => {
-        const metrics = c.metrics as any;
-        return sum + (metrics?.adSpend || 0);
-      }, 0)
-    },
-    timestamp: new Date().toISOString()
-  };
-
-  await redis.setEx(cacheKey('competitors:dashboard'), 180, JSON.stringify(data));
-  return data;
-}
-
-export default async function CompetitorsPage() {
-  const data = await getCompetitorData();
+export default function CompetitorsPage() {
+  const data = competitorData;
 
   return (
     <div className="space-y-6">
@@ -78,9 +62,7 @@ export default async function CompetitorsPage() {
         </div>
       </div>
 
-      <Suspense fallback={<div className="animate-pulse bg-gray-200 h-96 rounded"></div>}>
-        <CompetitorGrid competitors={data.competitors} />
-      </Suspense>
+      <CompetitorGrid competitors={data.competitors} />
     </div>
   );
 }

@@ -1,4 +1,4 @@
-import { Suspense } from 'react';
+
 
 const mockAnalytics = {
   totalClicks: 45230,

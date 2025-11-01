@@ -15,14 +15,8 @@
     "next": "^14.0.0",
     "react": "^18.0.0",
     "react-dom": "^18.0.0",
-    "drizzle-orm": "^0.29.0",
-    "postgres": "^3.4.0",
-    "redis": "^4.6.0",
-    "chart.js": "^4.4.0",
-    "react-chartjs-2": "^5.2.0",
     "@types/node": "^20.0.0",
-    "typescript": "^5.0.0",
-    "pg": "^8.11.0"
+    "typescript": "^5.0.0"
   },
   "devDependencies": {
     "drizzle-kit": "^0.20.0",

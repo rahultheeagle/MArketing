@@ -1,4 +1,4 @@
-import { Suspense } from 'react';
+
 
 const mockCampaigns = [
   { id: 1, name: 'Google Ads - Black Friday', status: 'active', budget: 8000, spent: 6200, clicks: 15420, conversions: 234 },

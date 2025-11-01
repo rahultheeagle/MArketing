@@ -11,25 +11,25 @@ export default function MetricsGrid({ campaigns, clicks }: MetricsGridProps) {
       title: 'Total Campaigns',
       value: campaigns.total,
       change: '+12%',
-      color: 'text-blue-600'
+      color: 'text-gray-900'
     },
     {
       title: 'Active Campaigns',
       value: campaigns.active,
       change: '+5%',
-      color: 'text-green-600'
+      color: 'text-green-700'
     },
     {
       title: 'Total Clicks',
       value: clicks.total.toLocaleString(),
       change: '+23%',
-      color: 'text-purple-600'
+      color: 'text-blue-700'
     },
     {
       title: 'Today\'s Clicks',
       value: clicks.today.toLocaleString(),
       change: '+8%',
-      color: 'text-orange-600'
+      color: 'text-orange-700'
     }
   ];
 
@@ -41,7 +41,7 @@ export default function MetricsGrid({ campaigns, clicks }: MetricsGridProps) {
           <div className={`text-2xl font-bold ${metric.color} mb-1`}>
             {metric.value}
           </div>
-          <div className="text-sm text-green-600">{metric.change}</div>
+          <div className="text-sm text-green-700 font-medium">{metric.change}</div>
         </div>
       ))}
     </div>

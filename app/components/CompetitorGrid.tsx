@@ -21,7 +21,7 @@ export default function CompetitorGrid({ competitors }: CompetitorGridProps) {
         const metrics = competitor.metrics as any || {};
         
         return (
-          <div key={competitor.id} className="card border-l-4 border-purple-500">
+          <div key={competitor.id} className="card border-l-4 border-blue-600">
             <div className="flex justify-between items-start mb-4">
               <div>
                 <h3 className="text-lg font-semibold text-gray-800">
@@ -41,13 +41,13 @@ export default function CompetitorGrid({ competitors }: CompetitorGridProps) {
             <div className="grid grid-cols-2 gap-4 mb-4">
               <div>
                 <p className="text-sm text-gray-500">Ad Spend</p>
-                <p className="text-lg font-semibold text-purple-600">
+                <p className="text-lg font-semibold text-gray-900">
                   ₹{(metrics.adSpend || 0).toLocaleString()}
                 </p>
               </div>
               <div>
                 <p className="text-sm text-gray-500">Traffic</p>
-                <p className="text-lg font-semibold text-blue-600">
+                <p className="text-lg font-semibold text-blue-700">
                   {((metrics.estimatedTraffic || 0) / 1000).toFixed(0)}K
                 </p>
               </div>

@@ -4,18 +4,18 @@
 
 @layer components {
   .card {
-    @apply bg-white rounded-lg shadow-md p-6;
+    @apply bg-white rounded-lg shadow-sm border border-gray-100 p-6 hover:shadow-md transition-shadow;
   }
   
   .metric-card {
-    @apply bg-white rounded-lg shadow-md p-4 text-center;
+    @apply bg-white rounded-lg shadow-sm border border-gray-100 p-4 text-center hover:shadow-md transition-shadow;
   }
   
   .btn-primary {
-    @apply bg-purple-600 text-white px-4 py-2 rounded hover:bg-purple-700 transition-colors;
+    @apply bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors font-medium;
   }
   
   .btn-secondary {
-    @apply bg-gray-200 text-gray-800 px-4 py-2 rounded hover:bg-gray-300 transition-colors;
+    @apply bg-gray-100 text-gray-700 px-4 py-2 rounded-md hover:bg-gray-200 transition-colors font-medium border border-gray-200;
   }
 }

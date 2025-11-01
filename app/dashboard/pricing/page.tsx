@@ -82,13 +82,13 @@ export default function PricingPage() {
         {plans.map((plan) => (
           <div 
             key={plan.id}
-            className={`bg-white p-6 rounded-lg shadow border-2 ${
-              plan.popular ? 'border-blue-500 relative' : 'border-gray-200'
+            className={`bg-white p-6 rounded-lg shadow-sm border-2 ${
+              plan.popular ? 'border-blue-600 relative shadow-md' : 'border-gray-200'
             }`}
           >
             {plan.popular && (
               <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
-                <span className="bg-blue-500 text-white px-3 py-1 rounded-full text-sm">
+                <span className="bg-blue-600 text-white px-3 py-1 rounded-full text-sm font-medium">
                   Most Popular
                 </span>
               </div>
@@ -124,8 +124,8 @@ export default function PricingPage() {
                 currentPlan === plan.id
                   ? 'bg-gray-300 text-gray-600 cursor-not-allowed'
                   : plan.popular
-                  ? 'bg-blue-600 text-white hover:bg-blue-700'
-                  : 'bg-gray-800 text-white hover:bg-gray-900'
+                  ? 'bg-blue-600 text-white hover:bg-blue-700 shadow-sm'
+                  : 'bg-gray-900 text-white hover:bg-gray-800 shadow-sm'
               }`}
               disabled={currentPlan === plan.id}
             >

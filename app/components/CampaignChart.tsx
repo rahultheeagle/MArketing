@@ -18,7 +18,7 @@ export default function CampaignChart({ data }: CampaignChartProps) {
             </div>
             <div className="flex-1 bg-gray-200 rounded-full h-4 relative">
               <div 
-                className="bg-purple-600 h-4 rounded-full transition-all duration-300"
+                className="bg-blue-600 h-4 rounded-full transition-all duration-300"
                 style={{ width: `${percentage}%` }}
               ></div>
             </div>

@@ -64,7 +64,6 @@ export default function HomePage() {
       <Link 
         href="/dashboard" 
         className="btn-primary text-base md:text-lg px-6 md:px-8 py-2 md:py-3 inline-block transform hover:scale-105 active:scale-95 transition-all shadow-lg hover:shadow-xl"
-        onClick={() => alert('Launching CampaignPulse Dashboard...')}
       >
         🚀 Launch Dashboard
       </Link>

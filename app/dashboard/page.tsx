@@ -49,7 +49,7 @@ export default function DashboardPage() {
         const randomActivity = newActivities[Math.floor(Math.random() * newActivities.length)];
         
         setActivities(prev => [
-          { text: randomActivity, time: 0.033 },
+          { text: randomActivity, time: 0.033, id: Date.now() },
           ...prev.slice(0, 2)
         ]);
       }
@@ -58,7 +58,7 @@ export default function DashboardPage() {
     return () => clearInterval(interval);
   }, []);
 
-  const formatTime = (minutes) => {
+  const formatTime = (minutes: number) => {
     if (minutes < 1) return 'Just now';
     if (minutes < 60) return `${Math.floor(minutes)} min ago`;
     const hours = Math.floor(minutes / 60);

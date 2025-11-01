@@ -226,7 +226,21 @@ export default function ReportsPage() {
                         {report.status === 'generating' ? 'Generating...' : 'Generate'}
                       </button>
                       <button 
-                        onClick={() => alert(`Downloading ${report.name}.${report.format}`)}
+                        onClick={() => {
+                          const data = campaigns.map(c => `${c.name},${c.status},${c.budget},${c.spent},${c.clicks},${c.conversions}`).join('\n');
+                          const content = report.format === 'csv' 
+                            ? `Campaign,Status,Budget,Spent,Clicks,Conversions\n${data}`
+                            : report.format === 'pdf'
+                            ? `${report.name}\n\nGenerated: ${new Date().toLocaleDateString()}\n\nCampaign Performance:\n${data}`
+                            : data;
+                          const blob = new Blob([content], { type: report.format === 'csv' ? 'text/csv' : 'text/plain' });
+                          const url = URL.createObjectURL(blob);
+                          const a = document.createElement('a');
+                          a.href = url;
+                          a.download = `${report.name}.${report.format}`;
+                          a.click();
+                          URL.revokeObjectURL(url);
+                        }}
                         className="bg-blue-600 text-white px-2 py-1 rounded text-xs hover:bg-blue-700"
                       >
                         Download
@@ -251,22 +265,51 @@ export default function ReportsPage() {
           <h2 className="text-lg font-semibold mb-4">Quick Export</h2>
           <div className="space-y-3">
             <button 
-              onClick={() => alert('Exporting current campaign data...')}
-              className="w-full p-3 text-left border rounded-lg hover:bg-gray-50"
+              onClick={() => {
+                const data = campaigns.map(c => `${c.name},${c.status},₹${c.budget},₹${c.spent},${c.clicks},${c.conversions}`).join('\n');
+                const blob = new Blob([`Campaign,Status,Budget,Spent,Clicks,Conversions\n${data}`], { type: 'text/csv' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'all-campaigns.csv';
+                a.click();
+                URL.revokeObjectURL(url);
+              }}
+              className="w-full p-3 text-left border rounded-lg hover:bg-gray-50 cursor-pointer"
             >
               <div className="font-medium">Export All Campaigns</div>
               <div className="text-sm text-gray-500">Current campaign performance data</div>
             </button>
             <button 
-              onClick={() => alert('Exporting analytics data...')}
-              className="w-full p-3 text-left border rounded-lg hover:bg-gray-50"
+              onClick={() => {
+                const metrics = store.getMetrics();
+                const data = `Total Campaigns,${metrics.totalCampaigns}\nActive Campaigns,${metrics.activeCampaigns}\nTotal Clicks,${metrics.totalClicks}\nToday Clicks,${metrics.todayClicks}`;
+                const blob = new Blob([`Metric,Value\n${data}`], { type: 'text/csv' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'analytics-data.csv';
+                a.click();
+                URL.revokeObjectURL(url);
+              }}
+              className="w-full p-3 text-left border rounded-lg hover:bg-gray-50 cursor-pointer"
             >
               <div className="font-medium">Export Analytics</div>
               <div className="text-sm text-gray-500">Detailed performance metrics</div>
             </button>
             <button 
-              onClick={() => alert('Exporting competitor data...')}
-              className="w-full p-3 text-left border rounded-lg hover:bg-gray-50"
+              onClick={() => {
+                const competitors = store.getCompetitors();
+                const data = competitors.map(c => `${c.name},${c.industry},${c.url},₹${c.metrics.adSpend},${c.metrics.estimatedTraffic}`).join('\n');
+                const blob = new Blob([`Company,Industry,Website,Ad Spend,Traffic\n${data}`], { type: 'text/csv' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'competitor-data.csv';
+                a.click();
+                URL.revokeObjectURL(url);
+              }}
+              className="w-full p-3 text-left border rounded-lg hover:bg-gray-50 cursor-pointer"
             >
               <div className="font-medium">Export Competitor Data</div>
               <div className="text-sm text-gray-500">Competitor tracking information</div>

@@ -6,6 +6,8 @@ import { store } from '@/lib/store';
 export default function CampaignsPage() {
   const [campaigns, setCampaigns] = useState(store.getCampaigns());
   const [lastUpdated, setLastUpdated] = useState(new Date());
+  const [showCreateForm, setShowCreateForm] = useState(false);
+  const [newCampaign, setNewCampaign] = useState({ name: '', budget: 0 });
   
   useEffect(() => {
     const unsubscribe = store.subscribe(() => {
@@ -33,7 +35,12 @@ export default function CampaignsPage() {
               Updated: {lastUpdated.toLocaleTimeString()}
             </div>
           </div>
-          <button className="btn-primary">Create Campaign</button>
+          <button 
+            onClick={() => setShowCreateForm(true)}
+            className="btn-primary"
+          >
+            Create Campaign
+          </button>
         </div>
       </div>
 
@@ -61,6 +68,61 @@ export default function CampaignsPage() {
           </div>
         </div>
       </div>
+
+      {showCreateForm && (
+        <div className="card">
+          <h2 className="text-lg font-semibold mb-4">Create New Campaign</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+            <input
+              type="text"
+              placeholder="Campaign Name"
+              value={newCampaign.name}
+              onChange={(e) => setNewCampaign({...newCampaign, name: e.target.value})}
+              className="p-2 border rounded-md"
+            />
+            <input
+              type="number"
+              placeholder="Budget (₹)"
+              value={newCampaign.budget}
+              onChange={(e) => setNewCampaign({...newCampaign, budget: Number(e.target.value)})}
+              className="p-2 border rounded-md"
+            />
+          </div>
+          <div className="flex gap-2">
+            <button
+              onClick={() => {
+                if (newCampaign.name && newCampaign.budget > 0) {
+                  const campaign = {
+                    id: Date.now(),
+                    name: newCampaign.name,
+                    status: 'active' as const,
+                    budget: newCampaign.budget,
+                    spent: 0,
+                    clicks: 0,
+                    conversions: 0
+                  };
+                  const updatedCampaigns = [...campaigns, campaign];
+                  store.updateCampaigns(updatedCampaigns);
+                  setNewCampaign({ name: '', budget: 0 });
+                  setShowCreateForm(false);
+                }
+              }}
+              className="btn-primary"
+            >
+              Create
+            </button>
+            <button
+              onClick={() => {
+                setShowCreateForm(false);
+                setNewCampaign({ name: '', budget: 0 });
+              }}
+              className="btn-secondary"
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      )}
 
       <div className="card overflow-x-auto">
         <h2 className="text-lg md:text-xl font-semibold mb-4">Campaign List</h2>
@@ -96,7 +158,19 @@ export default function CampaignsPage() {
                   <td className="p-2 md:p-3">{campaign.conversions}</td>
                   <td className="p-2 md:p-3">
                     <div className="flex flex-col md:flex-row gap-1 md:gap-2">
-                      <button className="btn-secondary text-xs px-2 py-1">Edit</button>
+                      <button 
+                        onClick={() => {
+                          const updatedCampaigns = campaigns.map(c => 
+                            c.id === campaign.id 
+                              ? {...c, status: c.status === 'active' ? 'paused' : 'active'}
+                              : c
+                          );
+                          store.updateCampaigns(updatedCampaigns);
+                        }}
+                        className="btn-secondary text-xs px-2 py-1"
+                      >
+                        {campaign.status === 'active' ? 'Pause' : 'Activate'}
+                      </button>
                       <button className="btn-primary text-xs px-2 py-1">View</button>
                     </div>
                   </td>

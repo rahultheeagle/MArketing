@@ -8,8 +8,9 @@ const PORT = 3001;
 app.use(cors());
 app.use(express.json());
 
-// In-memory storage for campaigns
+// In-memory storage for campaigns and UTM links
 let campaigns = [];
+let utmLinks = [];
 
 // Get all campaigns
 app.get('/api/campaigns', (req, res) => {
@@ -53,6 +54,49 @@ app.put('/api/campaigns/:id/metrics', (req, res) => {
   
   campaign.metrics = { impressions, clicks, conversions, spend };
   res.json(campaign);
+});
+
+// UTM Links endpoints
+app.get('/api/utm-links', (req, res) => {
+  res.json(utmLinks);
+});
+
+app.post('/api/utm-links', (req, res) => {
+  const { url, source, medium, campaign, term, content } = req.body;
+  
+  const utmLink = {
+    id: uuidv4(),
+    url,
+    source,
+    medium,
+    campaign,
+    term: term || '',
+    content: content || '',
+    createdAt: new Date().toISOString(),
+    clicks: 0,
+    conversions: 0,
+    revenue: 0
+  };
+  
+  utmLinks.push(utmLink);
+  res.status(201).json(utmLink);
+});
+
+// Track UTM click
+app.post('/api/utm-links/:id/track', (req, res) => {
+  const { id } = req.params;
+  const { type, value } = req.body; // type: 'click', 'conversion', 'revenue'
+  
+  const utmLink = utmLinks.find(u => u.id === id);
+  if (!utmLink) {
+    return res.status(404).json({ error: 'UTM link not found' });
+  }
+  
+  if (type === 'click') utmLink.clicks += 1;
+  if (type === 'conversion') utmLink.conversions += 1;
+  if (type === 'revenue') utmLink.revenue += value || 0;
+  
+  res.json(utmLink);
 });
 
 app.listen(PORT, () => {

@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UTM Parameter Generator & Tracker - CampaignPulse</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: Arial, sans-serif; background: #f5f5f5; }
+        .container { max-width: 1200px; margin: 0 auto; padding: 20px; }
+        .header { background: #059669; color: white; padding: 20px; border-radius: 8px; margin-bottom: 20px; }
+        .section { background: white; padding: 20px; border-radius: 8px; margin-bottom: 20px; }
+        .form-group { margin-bottom: 15px; }
+        label { display: block; margin-bottom: 5px; font-weight: bold; }
+        input, select { width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px; }
+        button { background: #059669; color: white; padding: 10px 20px; border: none; border-radius: 4px; cursor: pointer; margin-right: 10px; }
+        button:hover { background: #047857; }
+        .generated-url { background: #f0f9ff; border: 1px solid #0ea5e9; padding: 15px; border-radius: 4px; margin: 15px 0; }
+        .url-display { font-family: monospace; word-break: break-all; background: white; padding: 10px; border-radius: 4px; }
+        .utm-list { display: grid; gap: 10px; }
+        .utm-item { border: 1px solid #ddd; padding: 15px; border-radius: 4px; }
+        .utm-params { font-family: monospace; font-size: 12px; color: #666; margin-top: 5px; }
+        .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin-top: 15px; }
+        .stat-box { text-align: center; padding: 10px; background: #f8fafc; border-radius: 4px; }
+        .stat-value { font-size: 24px; font-weight: bold; color: #059669; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>UTM Parameter Generator & Tracker</h1>
+            <p>Generate trackable URLs and monitor campaign performance</p>
+        </div>
+
+        <div class="section">
+            <h2>Generate UTM URL</h2>
+            <form id="utmForm">
+                <div class="form-group">
+                    <label>Website URL *</label>
+                    <input type="url" id="baseUrl" placeholder="https://example.com" required>
+                </div>
+                <div class="form-group">
+                    <label>Campaign Source * (utm_source)</label>
+                    <input type="text" id="source" placeholder="google, facebook, newsletter" required>
+                </div>
+                <div class="form-group">
+                    <label>Campaign Medium * (utm_medium)</label>
+                    <select id="medium" required>
+                        <option value="">Select Medium</option>
+                        <option value="cpc">CPC (Cost Per Click)</option>
+                        <option value="email">Email</option>
+                        <option value="social">Social Media</option>
+                        <option value="display">Display Ads</option>
+                        <option value="organic">Organic Search</option>
+                        <option value="referral">Referral</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Campaign Name * (utm_campaign)</label>
+                    <input type="text" id="campaign" placeholder="spring_sale, product_launch" required>
+                </div>
+                <div class="form-group">
+                    <label>Campaign Term (utm_term)</label>
+                    <input type="text" id="term" placeholder="running shoes, marketing software">
+                </div>
+                <div class="form-group">
+                    <label>Campaign Content (utm_content)</label>
+                    <input type="text" id="content" placeholder="banner_ad, text_link">
+                </div>
+                <button type="submit">Generate UTM URL</button>
+                <button type="button" onclick="clearForm()">Clear</button>
+            </form>
+
+            <div id="generatedUrl" class="generated-url" style="display: none;">
+                <h3>Generated UTM URL:</h3>
+                <div class="url-display" id="urlDisplay"></div>
+                <button onclick="copyUrl()">Copy URL</button>
+                <button onclick="saveUtm()">Save & Track</button>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>Saved UTM Links</h2>
+            <div id="utmList" class="utm-list"></div>
+        </div>
+    </div>
+
+    <script>
+        let savedUtms = JSON.parse(localStorage.getItem('utmLinks') || '[]');
+        let generatedUrl = '';
+
+        document.addEventListener('DOMContentLoaded', displayUtmList);
+
+        document.getElementById('utmForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+            generateUtmUrl();
+        });
+
+        function generateUtmUrl() {
+            const baseUrl = document.getElementById('baseUrl').value;
+            const source = document.getElementById('source').value;
+            const medium = document.getElementById('medium').value;
+            const campaign = document.getElementById('campaign').value;
+            const term = document.getElementById('term').value;
+            const content = document.getElementById('content').value;
+
+            const url = new URL(baseUrl);
+            url.searchParams.set('utm_source', source);
+            url.searchParams.set('utm_medium', medium);
+            url.searchParams.set('utm_campaign', campaign);
+            
+            if (term) url.searchParams.set('utm_term', term);
+            if (content) url.searchParams.set('utm_content', content);
+
+            generatedUrl = url.toString();
+            
+            document.getElementById('urlDisplay').textContent = generatedUrl;
+            document.getElementById('generatedUrl').style.display = 'block';
+        }
+
+        function copyUrl() {
+            navigator.clipboard.writeText(generatedUrl).then(() => {
+                alert('URL copied to clipboard!');
+            });
+        }
+
+        function saveUtm() {
+            if (!generatedUrl) return;
+
+            const utmData = {
+                id: Date.now(),
+                url: generatedUrl,
+                source: document.getElementById('source').value,
+                medium: document.getElementById('medium').value,
+                campaign: document.getElementById('campaign').value,
+                term: document.getElementById('term').value || '',
+                content: document.getElementById('content').value || '',
+                createdAt: new Date().toISOString(),
+                clicks: Math.floor(Math.random() * 100), // Simulated data
+                conversions: Math.floor(Math.random() * 20),
+                revenue: Math.floor(Math.random() * 1000)
+            };
+
+            savedUtms.unshift(utmData);
+            localStorage.setItem('utmLinks', JSON.stringify(savedUtms));
+            displayUtmList();
+            clearForm();
+            alert('UTM link saved and tracking started!');
+        }
+
+        function displayUtmList() {
+            const container = document.getElementById('utmList');
+            
+            if (savedUtms.length === 0) {
+                container.innerHTML = '<p>No UTM links saved yet.</p>';
+                return;
+            }
+
+            container.innerHTML = savedUtms.map(utm => `
+                <div class="utm-item">
+                    <h4>${utm.campaign} (${utm.source} - ${utm.medium})</h4>
+                    <div class="utm-params">
+                        Source: ${utm.source} | Medium: ${utm.medium} | Campaign: ${utm.campaign}
+                        ${utm.term ? ` | Term: ${utm.term}` : ''}
+                        ${utm.content ? ` | Content: ${utm.content}` : ''}
+                    </div>
+                    <div class="url-display" style="margin: 10px 0; font-size: 12px;">${utm.url}</div>
+                    <div class="stats">
+                        <div class="stat-box">
+                            <div class="stat-value">${utm.clicks}</div>
+                            <div>Clicks</div>
+                        </div>
+                        <div class="stat-box">
+                            <div class="stat-value">${utm.conversions}</div>
+                            <div>Conversions</div>
+                        </div>
+                        <div class="stat-box">
+                            <div class="stat-value">$${utm.revenue}</div>
+                            <div>Revenue</div>
+                        </div>
+                    </div>
+                    <button onclick="copyUtmUrl('${utm.url}')" style="margin-top: 10px;">Copy URL</button>
+                    <button onclick="deleteUtm(${utm.id})" style="background: #dc2626;">Delete</button>
+                </div>
+            `).join('');
+        }
+
+        function copyUtmUrl(url) {
+            navigator.clipboard.writeText(url).then(() => {
+                alert('UTM URL copied to clipboard!');
+            });
+        }
+
+        function deleteUtm(id) {
+            if (confirm('Delete this UTM link?')) {
+                savedUtms = savedUtms.filter(utm => utm.id !== id);
+                localStorage.setItem('utmLinks', JSON.stringify(savedUtms));
+                displayUtmList();
+            }
+        }
+
+        function clearForm() {
+            document.getElementById('utmForm').reset();
+            document.getElementById('generatedUrl').style.display = 'none';
+            generatedUrl = '';
+        }
+    </script>
+</body>
+</html>

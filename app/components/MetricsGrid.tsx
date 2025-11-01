@@ -36,10 +36,10 @@ export default function MetricsGrid({ campaigns, clicks }: MetricsGridProps) {
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
       {metrics.map((metric, index) => (
-        <div key={index} className="metric-card">
+        <div key={`${metric.title}-${metric.value}`} className="metric-card">
           <h3 className="text-sm font-medium text-gray-500 mb-2">{metric.title}</h3>
           <div className={`text-2xl font-bold ${metric.color} mb-1`}>
-            {metric.value}
+            {metric.value} ({new Date().getSeconds()})
           </div>
           <div className="text-sm text-green-700 font-medium">{metric.change}</div>
         </div>

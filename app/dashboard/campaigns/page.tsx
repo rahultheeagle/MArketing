@@ -29,7 +29,7 @@ export default function CampaignsPage() {
   return (
     <div className="space-y-6">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-        <h1 className="text-2xl md:text-3xl font-bold text-gray-800">Campaigns</h1>
+        <h1 className="text-2xl md:text-3xl font-bold text-gray-800">Campaigns (Updated)</h1>
         <div className="flex items-center space-x-4">
           <div className="flex items-center space-x-2">
             <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
@@ -45,7 +45,7 @@ export default function CampaignsPage() {
             className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 cursor-pointer"
             style={{ minHeight: '40px', minWidth: '120px' }}
           >
-            Create Campaign
+🚀 CREATE NEW CAMPAIGN
           </button>
         </div>
       </div>

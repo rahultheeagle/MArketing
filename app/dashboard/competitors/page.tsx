@@ -7,7 +7,7 @@ const competitorList = [
     url: 'https://techrival.com',
     industry: 'SaaS',
     channels: ['google-ads', 'linkedin', 'email'],
-    metrics: { adSpend: 45000, estimatedTraffic: 125000 },
+    metrics: { adSpend: 3712500, estimatedTraffic: 125000 },
     status: 'active',
     createdAt: new Date()
   },
@@ -17,7 +17,7 @@ const competitorList = [
     url: 'https://marketleader.com',
     industry: 'E-commerce',
     channels: ['google-ads', 'facebook', 'instagram'],
-    metrics: { adSpend: 78000, estimatedTraffic: 280000 },
+    metrics: { adSpend: 6435000, estimatedTraffic: 280000 },
     status: 'active',
     createdAt: new Date()
   }
@@ -57,7 +57,7 @@ export default function CompetitorsPage() {
         <div className="metric-card">
           <h3 className="text-sm font-medium text-gray-500 mb-2">Market Spend</h3>
           <div className="text-2xl font-bold text-purple-600">
-            ${(data.summary.totalSpend / 1000).toFixed(0)}K
+            ₹{(data.summary.totalSpend / 100000).toFixed(1)}L
           </div>
         </div>
       </div>

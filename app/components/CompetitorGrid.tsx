@@ -42,7 +42,7 @@ export default function CompetitorGrid({ competitors }: CompetitorGridProps) {
               <div>
                 <p className="text-sm text-gray-500">Ad Spend</p>
                 <p className="text-lg font-semibold text-purple-600">
-                  ${(metrics.adSpend || 0).toLocaleString()}
+                  ₹{(metrics.adSpend || 0).toLocaleString()}
                 </p>
               </div>
               <div>

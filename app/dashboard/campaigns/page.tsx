@@ -1,10 +1,10 @@
 
 
 const mockCampaigns = [
-  { id: 1, name: 'Google Ads - Black Friday', status: 'active', budget: 8000, spent: 6200, clicks: 15420, conversions: 234 },
-  { id: 2, name: 'Facebook - Holiday Sale', status: 'active', budget: 6000, spent: 4800, clicks: 12350, conversions: 189 },
-  { id: 3, name: 'Email Newsletter', status: 'paused', budget: 2500, spent: 1200, clicks: 8900, conversions: 156 },
-  { id: 4, name: 'Instagram - Product Launch', status: 'active', budget: 4000, spent: 3100, clicks: 9800, conversions: 98 }
+  { id: 1, name: 'Google Ads - Black Friday', status: 'active', budget: 660000, spent: 512600, clicks: 15420, conversions: 234 },
+  { id: 2, name: 'Facebook - Holiday Sale', status: 'active', budget: 495000, spent: 396000, clicks: 12350, conversions: 189 },
+  { id: 3, name: 'Email Newsletter', status: 'paused', budget: 206250, spent: 99000, clicks: 8900, conversions: 156 },
+  { id: 4, name: 'Instagram - Product Launch', status: 'active', budget: 330000, spent: 256300, clicks: 9800, conversions: 98 }
 ];
 
 export default function CampaignsPage() {
@@ -29,13 +29,13 @@ export default function CampaignsPage() {
         <div className="metric-card">
           <h3 className="text-sm font-medium text-gray-500 mb-2">Total Budget</h3>
           <div className="text-xl md:text-2xl font-bold text-purple-600">
-            ${mockCampaigns.reduce((sum, c) => sum + c.budget, 0).toLocaleString()}
+            ₹{mockCampaigns.reduce((sum, c) => sum + c.budget, 0).toLocaleString()}
           </div>
         </div>
         <div className="metric-card">
           <h3 className="text-sm font-medium text-gray-500 mb-2">Total Spent</h3>
           <div className="text-xl md:text-2xl font-bold text-orange-600">
-            ${mockCampaigns.reduce((sum, c) => sum + c.spent, 0).toLocaleString()}
+            ₹{mockCampaigns.reduce((sum, c) => sum + c.spent, 0).toLocaleString()}
           </div>
         </div>
       </div>
@@ -68,8 +68,8 @@ export default function CampaignsPage() {
                       {campaign.status}
                     </span>
                   </td>
-                  <td className="p-2 md:p-3">${campaign.budget.toLocaleString()}</td>
-                  <td className="p-2 md:p-3">${campaign.spent.toLocaleString()}</td>
+                  <td className="p-2 md:p-3">₹{campaign.budget.toLocaleString()}</td>
+                  <td className="p-2 md:p-3">₹{campaign.spent.toLocaleString()}</td>
                   <td className="p-2 md:p-3">{campaign.clicks.toLocaleString()}</td>
                   <td className="p-2 md:p-3">{campaign.conversions}</td>
                   <td className="p-2 md:p-3">

@@ -15,13 +15,16 @@ export default function RootLayout({
       <body className="bg-gray-50 min-h-screen">
         <nav className="bg-gradient-to-r from-purple-600 to-blue-600 text-white p-4">
           <div className="container mx-auto flex flex-col md:flex-row justify-between items-center">
-            <h1 className="text-xl md:text-2xl font-bold mb-2 md:mb-0">🎯 CampaignPulse</h1>
+            <a href="/" className="text-xl md:text-2xl font-bold mb-2 md:mb-0 hover:opacity-80 transition-opacity">🎯 CampaignPulse</a>
             <div className="flex flex-wrap gap-2 md:gap-4">
               <a href="/dashboard" className="px-3 py-1 rounded hover:bg-white/20 transition-colors">Dashboard</a>
               <a href="/dashboard/competitors" className="px-3 py-1 rounded hover:bg-white/20 transition-colors">Competitors</a>
               <a href="/dashboard/campaigns" className="px-3 py-1 rounded hover:bg-white/20 transition-colors">Campaigns</a>
               <a href="/dashboard/analytics" className="px-3 py-1 rounded hover:bg-white/20 transition-colors">Analytics</a>
               <a href="/dashboard/reports" className="px-3 py-1 rounded hover:bg-white/20 transition-colors">Reports</a>
+              <a href="/dashboard/integrations" className="px-3 py-1 rounded hover:bg-white/20 transition-colors">Integrations</a>
+              <a href="/dashboard/autopilot" className="px-3 py-1 rounded hover:bg-white/20 transition-colors">Autopilot</a>
+              <a href="/dashboard/pricing" className="px-3 py-1 rounded hover:bg-white/20 transition-colors">Pricing</a>
             </div>
           </div>
         </nav>

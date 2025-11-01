@@ -213,7 +213,7 @@ export default function AutopilotPage() {
                     </span>
                   </td>
                   <td className="p-2 md:p-3 text-xs">
-                    {rule.lastTriggered ? rule.lastTriggered.toLocaleDateString() : 'Never'}
+                    {rule.lastTriggered ? rule.lastTriggered.toLocaleDateString('en-US') : 'Never'}
                   </td>
                   <td className="p-2 md:p-3">{rule.timesTriggered}</td>
                   <td className="p-2 md:p-3">

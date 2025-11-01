@@ -212,9 +212,9 @@ export default function ReportsPage() {
                       {report.status}
                     </span>
                   </td>
-                  <td className="p-2 md:p-3">{report.lastGenerated.toLocaleDateString()}</td>
+                  <td className="p-2 md:p-3">{report.lastGenerated.toLocaleDateString('en-US')}</td>
                   <td className="p-2 md:p-3">
-                    {report.nextScheduled ? report.nextScheduled.toLocaleDateString() : 'N/A'}
+                    {report.nextScheduled ? report.nextScheduled.toLocaleDateString('en-US') : 'N/A'}
                   </td>
                   <td className="p-2 md:p-3">
                     <div className="flex flex-wrap gap-1">

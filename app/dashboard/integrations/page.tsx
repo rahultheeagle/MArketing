@@ -162,7 +162,7 @@ export default function IntegrationsPage() {
               </div>
               
               <div className="space-y-2 text-sm text-gray-600 mb-4">
-                <div>Last sync: {integration.lastSync.toLocaleString()}</div>
+                <div>Last sync: {integration.lastSync.toLocaleString('en-US')}</div>
                 <div>Data points: {integration.dataPoints.toLocaleString()}</div>
               </div>
 

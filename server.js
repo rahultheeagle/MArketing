@@ -1282,9 +1282,247 @@ setInterval(() => {
   });
 }, 60000); // Check every minute
 
+// Budget Tracking System
+let budgetData = {
+  totalBudget: 25000,
+  totalSpent: 0,
+  totalAllocated: 0,
+  alertThreshold: 80,
+  notificationMethod: 'email',
+  campaigns: [
+    { id: 'google-ads', name: 'Google Ads - Black Friday', budget: 8000, spent: 0, dailyLimit: 300, period: 'monthly' },
+    { id: 'facebook-ads', name: 'Facebook - Holiday Sale', budget: 6000, spent: 0, dailyLimit: 200, period: 'monthly' },
+    { id: 'instagram-ads', name: 'Instagram - Product Launch', budget: 4000, spent: 0, dailyLimit: 150, period: 'monthly' },
+    { id: 'email-campaign', name: 'Email Newsletter', budget: 2500, spent: 0, dailyLimit: 100, period: 'monthly' },
+    { id: 'linkedin-ads', name: 'LinkedIn B2B', budget: 2000, spent: 0, dailyLimit: 80, period: 'monthly' }
+  ],
+  dailySpending: [],
+  alerts: []
+};
+
+// Calculate initial totals
+budgetData.totalAllocated = budgetData.campaigns.reduce((sum, c) => sum + c.budget, 0);
+budgetData.totalSpent = budgetData.campaigns.reduce((sum, c) => sum + c.spent, 0);
+
+// Get budget overview
+app.get('/api/budget', (req, res) => {
+  const remaining = budgetData.totalBudget - budgetData.totalSpent;
+  const spentPercentage = (budgetData.totalSpent / budgetData.totalBudget * 100).toFixed(1);
+  const allocatedPercentage = (budgetData.totalAllocated / budgetData.totalBudget * 100).toFixed(1);
+  
+  res.json({
+    totalBudget: budgetData.totalBudget,
+    totalSpent: budgetData.totalSpent,
+    totalAllocated: budgetData.totalAllocated,
+    remaining,
+    spentPercentage: parseFloat(spentPercentage),
+    allocatedPercentage: parseFloat(allocatedPercentage),
+    campaigns: budgetData.campaigns.map(campaign => ({
+      ...campaign,
+      remaining: campaign.budget - campaign.spent,
+      spentPercentage: ((campaign.spent / campaign.budget) * 100).toFixed(1),
+      status: getbudgetStatus(campaign)
+    })),
+    alerts: budgetData.alerts,
+    alertThreshold: budgetData.alertThreshold
+  });
+});
+
+// Set campaign budget
+app.post('/api/budget/campaign', (req, res) => {
+  const { campaignId, budget, period, dailyLimit } = req.body;
+  
+  let campaign = budgetData.campaigns.find(c => c.id === campaignId);
+  
+  if (campaign) {
+    campaign.budget = budget;
+    campaign.period = period || 'monthly';
+    campaign.dailyLimit = dailyLimit || Math.floor(budget / 30);
+  } else {
+    // Create new campaign budget
+    campaign = {
+      id: campaignId,
+      name: campaignId.replace('-', ' ').replace(/\b\w/g, l => l.toUpperCase()),
+      budget,
+      spent: 0,
+      period: period || 'monthly',
+      dailyLimit: dailyLimit || Math.floor(budget / 30)
+    };
+    budgetData.campaigns.push(campaign);
+  }
+  
+  // Recalculate totals
+  budgetData.totalAllocated = budgetData.campaigns.reduce((sum, c) => sum + c.budget, 0);
+  
+  res.json({
+    message: 'Budget set successfully',
+    campaign,
+    totalAllocated: budgetData.totalAllocated
+  });
+});
+
+// Track spending
+app.post('/api/budget/spend', (req, res) => {
+  const { campaignId, amount, description } = req.body;
+  
+  const campaign = budgetData.campaigns.find(c => c.id === campaignId);
+  if (!campaign) {
+    return res.status(404).json({ error: 'Campaign not found' });
+  }
+  
+  // Add spending
+  campaign.spent += amount;
+  budgetData.totalSpent += amount;
+  
+  // Log spending
+  const spendingRecord = {
+    id: Date.now(),
+    campaignId,
+    amount,
+    description: description || 'Campaign spending',
+    timestamp: new Date().toISOString(),
+    remainingBudget: campaign.budget - campaign.spent
+  };
+  
+  // Check for budget alerts
+  const alerts = checkBudgetAlerts(campaign);
+  budgetData.alerts.push(...alerts);
+  
+  res.json({
+    message: 'Spending tracked successfully',
+    spendingRecord,
+    campaign: {
+      ...campaign,
+      remaining: campaign.budget - campaign.spent,
+      spentPercentage: ((campaign.spent / campaign.budget) * 100).toFixed(1)
+    },
+    alerts
+  });
+});
+
+// Update budget settings
+app.put('/api/budget/settings', (req, res) => {
+  const { totalBudget, alertThreshold, notificationMethod } = req.body;
+  
+  if (totalBudget) budgetData.totalBudget = totalBudget;
+  if (alertThreshold) budgetData.alertThreshold = alertThreshold;
+  if (notificationMethod) budgetData.notificationMethod = notificationMethod;
+  
+  res.json({
+    message: 'Budget settings updated',
+    settings: {
+      totalBudget: budgetData.totalBudget,
+      alertThreshold: budgetData.alertThreshold,
+      notificationMethod: budgetData.notificationMethod
+    }
+  });
+});
+
+// Get budget alerts
+app.get('/api/budget/alerts', (req, res) => {
+  res.json({
+    alerts: budgetData.alerts,
+    alertCount: budgetData.alerts.length,
+    criticalAlerts: budgetData.alerts.filter(a => a.type === 'critical').length,
+    warningAlerts: budgetData.alerts.filter(a => a.type === 'warning').length
+  });
+});
+
+// Get spending history
+app.get('/api/budget/history', (req, res) => {
+  const { period = '7d', campaignId } = req.query;
+  
+  // Generate mock spending history
+  const days = period === '30d' ? 30 : 7;
+  const history = [];
+  
+  for (let i = days - 1; i >= 0; i--) {
+    const date = new Date();
+    date.setDate(date.getDate() - i);
+    
+    let dailySpend = 0;
+    budgetData.campaigns.forEach(campaign => {
+      if (!campaignId || campaign.id === campaignId) {
+        dailySpend += Math.floor(Math.random() * campaign.dailyLimit) + 50;
+      }
+    });
+    
+    history.push({
+      date: date.toISOString().split('T')[0],
+      amount: dailySpend,
+      campaigns: campaignId ? 1 : budgetData.campaigns.length
+    });
+  }
+  
+  res.json({
+    period,
+    history,
+    totalSpent: history.reduce((sum, day) => sum + day.amount, 0),
+    averageDaily: history.reduce((sum, day) => sum + day.amount, 0) / history.length
+  });
+});
+
+// Helper functions
+function getbudgetStatus(campaign) {
+  const spentPercentage = (campaign.spent / campaign.budget) * 100;
+  
+  if (spentPercentage >= 100) return 'over_budget';
+  if (spentPercentage >= budgetData.alertThreshold) return 'warning';
+  if (spentPercentage >= 50) return 'on_track';
+  return 'under_budget';
+}
+
+function checkBudgetAlerts(campaign) {
+  const alerts = [];
+  const spentPercentage = (campaign.spent / campaign.budget) * 100;
+  
+  if (spentPercentage >= 100) {
+    alerts.push({
+      id: Date.now(),
+      type: 'critical',
+      campaignId: campaign.id,
+      message: `${campaign.name} has exceeded budget by $${(campaign.spent - campaign.budget).toFixed(2)}`,
+      timestamp: new Date().toISOString()
+    });
+  } else if (spentPercentage >= budgetData.alertThreshold) {
+    alerts.push({
+      id: Date.now(),
+      type: 'warning',
+      campaignId: campaign.id,
+      message: `${campaign.name} has used ${spentPercentage.toFixed(1)}% of budget`,
+      timestamp: new Date().toISOString()
+    });
+  }
+  
+  return alerts;
+}
+
+// Simulate daily spending updates
+setInterval(() => {
+  budgetData.campaigns.forEach(campaign => {
+    // Simulate random daily spending
+    const dailySpend = Math.floor(Math.random() * 100) + 20;
+    campaign.spent += dailySpend;
+    
+    // Check for alerts
+    const alerts = checkBudgetAlerts(campaign);
+    budgetData.alerts.push(...alerts);
+  });
+  
+  // Update total spent
+  budgetData.totalSpent = budgetData.campaigns.reduce((sum, c) => sum + c.spent, 0);
+  
+  // Keep only last 50 alerts
+  if (budgetData.alerts.length > 50) {
+    budgetData.alerts = budgetData.alerts.slice(-50);
+  }
+  
+}, 300000); // Update every 5 minutes
+
 app.listen(PORT, () => {
   console.log(`Campaign Hub API running on port ${PORT}`);
   console.log(`Real-time Analytics available at http://localhost:${PORT}`);
   console.log(`Performance Scoring available at http://localhost:${PORT}`);
   console.log(`Automated Reports available at http://localhost:${PORT}`);
+  console.log(`Budget Tracker available at http://localhost:${PORT}`);
 });

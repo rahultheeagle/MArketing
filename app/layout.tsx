@@ -15,7 +15,10 @@ export default function RootLayout({
       <body className="bg-white min-h-screen">
         <nav className="bg-gray-900 text-white p-4 shadow-lg">
           <div className="container mx-auto flex flex-col md:flex-row justify-between items-center">
-            <a href="/" className="text-xl md:text-2xl font-bold mb-2 md:mb-0 hover:text-blue-400 transition-colors">🎯 CampaignPulse</a>
+            <a href="/" className="text-xl md:text-2xl font-bold mb-2 md:mb-0 hover:text-blue-400 transition-colors">
+              <span className="bg-blue-600 text-white px-3 py-1 rounded-md mr-2">CP</span>
+              CampaignPulse
+            </a>
             <div className="flex flex-wrap gap-2 md:gap-4">
               <a href="/dashboard" className="px-3 py-1 rounded-md hover:bg-gray-800 hover:text-blue-400 transition-colors">Dashboard</a>
               <a href="/dashboard/competitors" className="px-3 py-1 rounded-md hover:bg-gray-800 hover:text-blue-400 transition-colors">Competitors</a>

@@ -1016,15 +1016,268 @@ function generateReportData(template, dateRange) {
   }
 }
 
+// Performance Report Scheduling
+let performanceSchedules = [
+  {
+    id: 1,
+    name: 'Executive Weekly Summary',
+    frequency: 'weekly',
+    day: 1, // Monday
+    time: '09:00',
+    recipients: ['ceo@company.com', 'cmo@company.com'],
+    format: 'pdf',
+    status: 'active',
+    template: 'executive',
+    nextRun: calculateWeeklyNextRun(1, '09:00'),
+    lastRun: null,
+    runCount: 0
+  },
+  {
+    id: 2,
+    name: 'Monthly ROI Analysis',
+    frequency: 'monthly',
+    date: 1, // 1st of month
+    time: '10:00',
+    recipients: ['finance@company.com', 'cfo@company.com'],
+    format: 'excel',
+    status: 'scheduled',
+    template: 'roi',
+    period: 'previous',
+    nextRun: calculateMonthlyNextRun(1, '10:00'),
+    lastRun: null,
+    runCount: 0
+  }
+];
+
+// Get performance schedules
+app.get('/api/performance-schedules', (req, res) => {
+  res.json({
+    schedules: performanceSchedules,
+    totalSchedules: performanceSchedules.length,
+    activeSchedules: performanceSchedules.filter(s => s.status === 'active').length,
+    weeklySchedules: performanceSchedules.filter(s => s.frequency === 'weekly').length,
+    monthlySchedules: performanceSchedules.filter(s => s.frequency === 'monthly').length
+  });
+});
+
+// Create performance report schedule
+app.post('/api/performance-schedules', (req, res) => {
+  const { name, frequency, day, date, time, recipients, format, template, period } = req.body;
+  
+  const newSchedule = {
+    id: performanceSchedules.length + 1,
+    name,
+    frequency,
+    day: frequency === 'weekly' ? day : null,
+    date: frequency === 'monthly' ? date : null,
+    time,
+    recipients: Array.isArray(recipients) ? recipients : recipients.split(',').map(r => r.trim()),
+    format,
+    template: template || 'performance',
+    period: frequency === 'monthly' ? (period || 'previous') : null,
+    status: 'scheduled',
+    createdAt: new Date().toISOString(),
+    nextRun: frequency === 'weekly' ? 
+      calculateWeeklyNextRun(day, time) : 
+      calculateMonthlyNextRun(date, time),
+    lastRun: null,
+    runCount: 0
+  };
+  
+  performanceSchedules.push(newSchedule);
+  res.status(201).json(newSchedule);
+});
+
+// Update performance schedule
+app.put('/api/performance-schedules/:id', (req, res) => {
+  const { id } = req.params;
+  const updates = req.body;
+  
+  const schedule = performanceSchedules.find(s => s.id === parseInt(id));
+  if (!schedule) {
+    return res.status(404).json({ error: 'Schedule not found' });
+  }
+  
+  Object.keys(updates).forEach(key => {
+    if (updates[key] !== undefined) {
+      schedule[key] = updates[key];
+    }
+  });
+  
+  // Recalculate next run if schedule changed
+  if (updates.day || updates.date || updates.time) {
+    schedule.nextRun = schedule.frequency === 'weekly' ? 
+      calculateWeeklyNextRun(schedule.day, schedule.time) : 
+      calculateMonthlyNextRun(schedule.date, schedule.time);
+  }
+  
+  res.json(schedule);
+});
+
+// Delete performance schedule
+app.delete('/api/performance-schedules/:id', (req, res) => {
+  const { id } = req.params;
+  const index = performanceSchedules.findIndex(s => s.id === parseInt(id));
+  
+  if (index === -1) {
+    return res.status(404).json({ error: 'Schedule not found' });
+  }
+  
+  performanceSchedules.splice(index, 1);
+  res.json({ message: 'Schedule deleted successfully' });
+});
+
+// Generate performance report immediately
+app.post('/api/performance-schedules/:id/generate', (req, res) => {
+  const { id } = req.params;
+  const schedule = performanceSchedules.find(s => s.id === parseInt(id));
+  
+  if (!schedule) {
+    return res.status(404).json({ error: 'Schedule not found' });
+  }
+  
+  // Generate performance report data
+  const reportData = generatePerformanceReportData(schedule);
+  
+  // Update schedule stats
+  schedule.lastRun = new Date().toISOString();
+  schedule.runCount += 1;
+  
+  res.json({
+    message: 'Performance report generated successfully',
+    schedule: schedule.name,
+    data: reportData,
+    generatedAt: new Date().toISOString(),
+    format: schedule.format,
+    recipients: schedule.recipients
+  });
+});
+
+// Helper functions for scheduling
+function calculateWeeklyNextRun(day, time) {
+  const now = new Date();
+  const nextRun = new Date();
+  const currentDay = now.getDay();
+  const targetDay = parseInt(day);
+  
+  let daysUntil = targetDay - currentDay;
+  if (daysUntil <= 0) daysUntil += 7;
+  
+  nextRun.setDate(now.getDate() + daysUntil);
+  const [hours, minutes] = time.split(':');
+  nextRun.setHours(parseInt(hours), parseInt(minutes), 0, 0);
+  
+  return nextRun;
+}
+
+function calculateMonthlyNextRun(date, time) {
+  const now = new Date();
+  let nextRun = new Date();
+  
+  if (date === 'last') {
+    // Last day of month
+    nextRun = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+  } else {
+    nextRun.setDate(parseInt(date));
+    if (nextRun <= now) {
+      nextRun.setMonth(nextRun.getMonth() + 1);
+    }
+  }
+  
+  const [hours, minutes] = time.split(':');
+  nextRun.setHours(parseInt(hours), parseInt(minutes), 0, 0);
+  
+  return nextRun;
+}
+
+// Generate performance report data
+function generatePerformanceReportData(schedule) {
+  const period = schedule.frequency === 'weekly' ? '7d' : '30d';
+  const endDate = new Date();
+  const startDate = new Date();
+  
+  if (schedule.frequency === 'weekly') {
+    startDate.setDate(endDate.getDate() - 7);
+  } else {
+    if (schedule.period === 'previous') {
+      startDate.setMonth(endDate.getMonth() - 1, 1);
+      endDate.setDate(0); // Last day of previous month
+    } else {
+      startDate.setDate(1); // First day of current month
+    }
+  }
+  
+  return {
+    period: {
+      start: startDate.toISOString().split('T')[0],
+      end: endDate.toISOString().split('T')[0],
+      type: schedule.frequency
+    },
+    summary: {
+      totalClicks: Math.floor(Math.random() * 50000) + 10000,
+      totalConversions: Math.floor(Math.random() * 1000) + 200,
+      totalRevenue: Math.floor(Math.random() * 100000) + 20000,
+      avgROI: Math.floor(Math.random() * 200) + 50,
+      changeVsPrevious: {
+        clicks: `+${Math.floor(Math.random() * 20)}%`,
+        conversions: `+${Math.floor(Math.random() * 15)}%`,
+        revenue: `+${Math.floor(Math.random() * 25)}%`,
+        roi: `+${Math.floor(Math.random() * 10)}%`
+      }
+    },
+    topCampaigns: campaigns.slice(0, 5).map(campaign => ({
+      name: campaign.name,
+      clicks: campaign.metrics.clicks,
+      conversions: campaign.metrics.conversions,
+      revenue: campaign.metrics.conversions * 50,
+      roi: ((campaign.metrics.conversions * 50 - campaign.budget) / campaign.budget * 100).toFixed(1) + '%',
+      grade: campaign.metrics.conversions > 50 ? 'A' : campaign.metrics.conversions > 20 ? 'B' : 'C'
+    })),
+    insights: [
+      'Email campaigns showing strongest ROI performance',
+      `${schedule.frequency === 'weekly' ? 'This week' : 'This month'} exceeded targets by 15%`,
+      'Mobile traffic converting 25% better than desktop',
+      'Weekend performance 20% above weekday average'
+    ],
+    recommendations: [
+      'Scale top-performing email campaigns by 30%',
+      'Optimize mobile landing pages for better conversion',
+      'Increase weekend campaign activity',
+      'A/B test underperforming ad creatives'
+    ],
+    alerts: schedule.frequency === 'weekly' ? [
+      { type: 'success', message: 'Google Ads exceeded weekly target by 20%' },
+      { type: 'warning', message: 'Facebook CTR dropped 10% this week' }
+    ] : [
+      { type: 'info', message: 'Monthly budget 85% utilized' },
+      { type: 'success', message: 'ROI improved 15% vs last month' }
+    ]
+  };
+}
+
 // Auto-run scheduled reports (simulate)
 setInterval(() => {
   const now = new Date();
+  
+  // Check regular reports
   scheduledReports.forEach(report => {
     if (report.status === 'active' && report.nextRun <= now) {
       console.log(`Auto-generating report: ${report.name}`);
       report.lastRun = now.toISOString();
       report.runCount += 1;
       report.nextRun = calculateNextRun(report.frequency);
+    }
+  });
+  
+  // Check performance schedules
+  performanceSchedules.forEach(schedule => {
+    if (schedule.status === 'active' && schedule.nextRun <= now) {
+      console.log(`Auto-generating performance report: ${schedule.name}`);
+      schedule.lastRun = now.toISOString();
+      schedule.runCount += 1;
+      schedule.nextRun = schedule.frequency === 'weekly' ? 
+        calculateWeeklyNextRun(schedule.day, schedule.time) : 
+        calculateMonthlyNextRun(schedule.date, schedule.time);
     }
   });
 }, 60000); // Check every minute

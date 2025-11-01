@@ -2356,6 +2356,218 @@ setInterval(() => {
   });
 }, 60000); // Update every minute
 
+// Competitor Tracking System
+let competitors = [
+  {
+    id: 1,
+    name: 'TechRival Corp',
+    url: 'https://techrival.com',
+    industry: 'saas',
+    status: 'active',
+    channels: ['google-ads', 'linkedin', 'email'],
+    addedDate: new Date().toISOString(),
+    metrics: {
+      adSpend: 45000,
+      estimatedTraffic: 125000,
+      keywordRank: 3.2,
+      socialEngagement: 8500,
+      backlinks: 2400,
+      domainAuthority: 65
+    },
+    trends: {
+      adSpend: '+12%',
+      traffic: '+8%',
+      ranking: '-5%',
+      engagement: '+15%'
+    }
+  }
+];
+
+let trackingSettings = {
+  updateFrequency: 'daily',
+  alertThreshold: 20,
+  notificationMethod: 'email'
+};
+
+// Get all competitors
+app.get('/api/competitors', (req, res) => {
+  const { industry, status } = req.query;
+  
+  let filteredCompetitors = competitors;
+  
+  if (industry) {
+    filteredCompetitors = filteredCompetitors.filter(c => c.industry === industry);
+  }
+  
+  if (status) {
+    filteredCompetitors = filteredCompetitors.filter(c => c.status === status);
+  }
+  
+  res.json({
+    competitors: filteredCompetitors,
+    total: filteredCompetitors.length,
+    settings: trackingSettings
+  });
+});
+
+// Add new competitor
+app.post('/api/competitors', (req, res) => {
+  const { name, url, industry, channels } = req.body;
+  
+  const newCompetitor = {
+    id: competitors.length + 1,
+    name,
+    url,
+    industry,
+    status: 'monitoring',
+    channels: channels || [],
+    addedDate: new Date().toISOString(),
+    metrics: {
+      adSpend: Math.floor(Math.random() * 50000) + 10000,
+      estimatedTraffic: Math.floor(Math.random() * 200000) + 50000,
+      keywordRank: (Math.random() * 5 + 1).toFixed(1),
+      socialEngagement: Math.floor(Math.random() * 10000) + 2000,
+      backlinks: Math.floor(Math.random() * 5000) + 1000,
+      domainAuthority: Math.floor(Math.random() * 40) + 40
+    },
+    trends: {
+      adSpend: (Math.random() > 0.5 ? '+' : '-') + Math.floor(Math.random() * 20) + '%',
+      traffic: (Math.random() > 0.5 ? '+' : '-') + Math.floor(Math.random() * 15) + '%',
+      ranking: (Math.random() > 0.5 ? '+' : '-') + Math.floor(Math.random() * 10) + '%',
+      engagement: (Math.random() > 0.5 ? '+' : '-') + Math.floor(Math.random() * 25) + '%'
+    }
+  };
+  
+  competitors.push(newCompetitor);
+  res.status(201).json(newCompetitor);
+});
+
+// Update competitor
+app.put('/api/competitors/:id', (req, res) => {
+  const { id } = req.params;
+  const updates = req.body;
+  
+  const competitor = competitors.find(c => c.id === parseInt(id));
+  if (!competitor) {
+    return res.status(404).json({ error: 'Competitor not found' });
+  }
+  
+  Object.keys(updates).forEach(key => {
+    if (updates[key] !== undefined) {
+      competitor[key] = updates[key];
+    }
+  });
+  
+  res.json(competitor);
+});
+
+// Delete competitor
+app.delete('/api/competitors/:id', (req, res) => {
+  const { id } = req.params;
+  const index = competitors.findIndex(c => c.id === parseInt(id));
+  
+  if (index === -1) {
+    return res.status(404).json({ error: 'Competitor not found' });
+  }
+  
+  competitors.splice(index, 1);
+  res.json({ message: 'Competitor removed successfully' });
+});
+
+// Get competitor analysis
+app.get('/api/competitors/analysis', (req, res) => {
+  const totalSpend = competitors.reduce((sum, c) => sum + c.metrics.adSpend, 0);
+  const avgTraffic = competitors.reduce((sum, c) => sum + c.metrics.estimatedTraffic, 0) / competitors.length;
+  const avgRank = competitors.reduce((sum, c) => sum + parseFloat(c.metrics.keywordRank), 0) / competitors.length;
+  
+  const topSpender = competitors.reduce((prev, current) => 
+    prev.metrics.adSpend > current.metrics.adSpend ? prev : current
+  );
+  
+  const trafficLeader = competitors.reduce((prev, current) => 
+    prev.metrics.estimatedTraffic > current.metrics.estimatedTraffic ? prev : current
+  );
+  
+  const channelAnalysis = {};
+  competitors.forEach(c => {
+    c.channels.forEach(channel => {
+      channelAnalysis[channel] = (channelAnalysis[channel] || 0) + 1;
+    });
+  });
+  
+  const insights = [
+    {
+      type: 'spending',
+      title: 'Market Spending Leader',
+      description: `${topSpender.name} leads with $${(topSpender.metrics.adSpend / 1000).toFixed(0)}K monthly ad spend`,
+      impact: 'high'
+    },
+    {
+      type: 'traffic',
+      title: 'Traffic Dominance',
+      description: `${trafficLeader.name} captures ${(trafficLeader.metrics.estimatedTraffic / 1000).toFixed(0)}K monthly visitors`,
+      impact: 'high'
+    },
+    {
+      type: 'opportunity',
+      title: 'Ranking Opportunity',
+      description: `Average competitor rank is ${avgRank.toFixed(1)} - SEO opportunity exists`,
+      impact: 'medium'
+    }
+  ];
+  
+  res.json({
+    overview: {
+      totalCompetitors: competitors.length,
+      totalMarketSpend: totalSpend,
+      avgTraffic: Math.round(avgTraffic),
+      avgKeywordRank: avgRank.toFixed(1)
+    },
+    leaders: {
+      topSpender,
+      trafficLeader
+    },
+    channelAnalysis,
+    insights
+  });
+});
+
+// Update tracking settings
+app.put('/api/competitors/settings', (req, res) => {
+  const { updateFrequency, alertThreshold, notificationMethod } = req.body;
+  
+  if (updateFrequency) trackingSettings.updateFrequency = updateFrequency;
+  if (alertThreshold) trackingSettings.alertThreshold = alertThreshold;
+  if (notificationMethod) trackingSettings.notificationMethod = notificationMethod;
+  
+  res.json({
+    message: 'Settings updated successfully',
+    settings: trackingSettings
+  });
+});
+
+// Simulate competitor data updates
+setInterval(() => {
+  competitors.forEach(competitor => {
+    if (competitor.status === 'active') {
+      // Update metrics with small random changes
+      competitor.metrics.adSpend += (Math.random() - 0.5) * 1000;
+      competitor.metrics.estimatedTraffic += (Math.random() - 0.5) * 5000;
+      competitor.metrics.socialEngagement += (Math.random() - 0.5) * 200;
+      
+      // Ensure minimum values
+      competitor.metrics.adSpend = Math.max(1000, competitor.metrics.adSpend);
+      competitor.metrics.estimatedTraffic = Math.max(10000, competitor.metrics.estimatedTraffic);
+      competitor.metrics.socialEngagement = Math.max(500, competitor.metrics.socialEngagement);
+      
+      // Update trends
+      competitor.trends.adSpend = (Math.random() > 0.5 ? '+' : '-') + Math.floor(Math.random() * 20) + '%';
+      competitor.trends.traffic = (Math.random() > 0.5 ? '+' : '-') + Math.floor(Math.random() * 15) + '%';
+      competitor.trends.engagement = (Math.random() > 0.5 ? '+' : '-') + Math.floor(Math.random() * 25) + '%';
+    }
+  });
+}, 300000); // Update every 5 minutes
+
 app.listen(PORT, () => {
   console.log(`Campaign Hub API running on port ${PORT}`);
   console.log(`Real-time Analytics available at http://localhost:${PORT}`);
@@ -2363,4 +2575,5 @@ app.listen(PORT, () => {
   console.log(`Automated Reports available at http://localhost:${PORT}`);
   console.log(`Budget Tracker available at http://localhost:${PORT}`);
   console.log(`A/B Test Manager available at http://localhost:${PORT}`);
+  console.log(`Competitor Tracking available at http://localhost:${PORT}`);
 });

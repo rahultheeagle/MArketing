@@ -38,14 +38,10 @@ export default function CampaignsPage() {
             </div>
           </div>
           <button 
-            onClick={() => {
-              alert('Button clicked!');
-              setShowCreateForm(true);
-            }}
-            className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 cursor-pointer"
-            style={{ minHeight: '40px', minWidth: '120px' }}
+            onClick={() => setShowCreateForm(!showCreateForm)}
+            className="bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700 cursor-pointer"
           >
-🚀 CREATE NEW CAMPAIGN
+            {showCreateForm ? 'CANCEL' : 'CREATE CAMPAIGN'}
           </button>
         </div>
       </div>

@@ -7,10 +7,11 @@ import CampaignChart from '@/app/components/CampaignChart';
 export default function DashboardPage() {
   const [lastUpdated, setLastUpdated] = useState(new Date());
   const [activities, setActivities] = useState([
-    { text: 'New campaign created', time: 2 },
-    { text: 'A/B test completed', time: 15 },
-    { text: 'Report generated', time: 60 }
+    { text: 'New campaign created', time: 2, id: 1 },
+    { text: 'A/B test completed', time: 15, id: 2 },
+    { text: 'Report generated', time: 60, id: 3 }
   ]);
+  const [updateCounter, setUpdateCounter] = useState(0);
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -21,6 +22,8 @@ export default function DashboardPage() {
         ...activity,
         time: activity.time + 0.083 // Increment by 5 seconds
       })));
+      
+      setUpdateCounter(prev => prev + 1);
       
       // Occasionally add new activities
       if (Math.random() < 0.3) {
@@ -85,10 +88,10 @@ export default function DashboardPage() {
         <div className="card">
           <h2 className="text-lg md:text-xl font-semibold mb-4">Recent Activity</h2>
           <div className="space-y-3">
-            {activities.map((activity, index) => (
-              <div key={index} className="flex flex-col md:flex-row justify-between items-start md:items-center p-3 bg-gray-50 rounded gap-1 transition-all">
+            {activities.map((activity) => (
+              <div key={activity.id} className="flex flex-col md:flex-row justify-between items-start md:items-center p-3 bg-gray-50 rounded gap-1 transition-all">
                 <span>{activity.text}</span>
-                <span className="text-sm text-gray-500">{formatTime(activity.time)}</span>
+                <span className="text-sm text-gray-500">{formatTime(activity.time)} ({updateCounter})</span>
               </div>
             ))}
           </div>

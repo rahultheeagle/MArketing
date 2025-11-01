@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Auto UTM Generator - CampaignPulse</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: Arial, sans-serif; background: #f5f5f5; }
+        .container { max-width: 1200px; margin: 0 auto; padding: 20px; }
+        .header { background: #7c3aed; color: white; padding: 20px; border-radius: 8px; margin-bottom: 20px; }
+        .section { background: white; padding: 20px; border-radius: 8px; margin-bottom: 20px; }
+        .form-group { margin-bottom: 15px; }
+        label { display: block; margin-bottom: 5px; font-weight: bold; }
+        input, select, textarea { width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px; }
+        button { background: #7c3aed; color: white; padding: 10px 20px; border: none; border-radius: 4px; cursor: pointer; margin-right: 10px; }
+        button:hover { background: #6d28d9; }
+        .auto-generated { background: #f0fdf4; border: 1px solid #22c55e; padding: 15px; border-radius: 4px; margin: 15px 0; }
+        .utm-batch { border: 1px solid #ddd; padding: 15px; margin: 10px 0; border-radius: 4px; }
+        .performance-chart { height: 200px; background: #f8fafc; border-radius: 4px; display: flex; align-items: center; justify-content: center; }
+        .metrics-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; margin: 15px 0; }
+        .metric-card { text-align: center; padding: 15px; background: #f8fafc; border-radius: 4px; }
+        .metric-value { font-size: 24px; font-weight: bold; color: #7c3aed; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Auto UTM Generator & Performance Tracker</h1>
+            <p>Automatically generate UTM links and track their real-time performance</p>
+        </div>
+
+        <div class="section">
+            <h2>Auto-Generate UTM Campaign</h2>
+            <form id="autoUtmForm">
+                <div class="form-group">
+                    <label>Base Website URL *</label>
+                    <input type="url" id="baseUrl" placeholder="https://example.com" required>
+                </div>
+                <div class="form-group">
+                    <label>Campaign Name *</label>
+                    <input type="text" id="campaignName" placeholder="Black Friday 2024" required>
+                </div>
+                <div class="form-group">
+                    <label>Target Channels (Select Multiple)</label>
+                    <select id="channels" multiple size="6">
+                        <option value="google-ads">Google Ads</option>
+                        <option value="facebook">Facebook</option>
+                        <option value="instagram">Instagram</option>
+                        <option value="linkedin">LinkedIn</option>
+                        <option value="email">Email Newsletter</option>
+                        <option value="twitter">Twitter</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Content Variations (one per line)</label>
+                    <textarea id="contentVariations" rows="4" placeholder="banner_top&#10;sidebar_ad&#10;footer_link&#10;popup_modal"></textarea>
+                </div>
+                <button type="submit">Auto-Generate UTM Links</button>
+            </form>
+        </div>
+
+        <div id="generatedLinks" class="section" style="display: none;">
+            <h2>Generated UTM Links</h2>
+            <div id="linksList"></div>
+            <button onclick="startTracking()">Start Performance Tracking</button>
+        </div>
+
+        <div id="performanceSection" class="section" style="display: none;">
+            <h2>Real-Time Performance Tracking</h2>
+            <div class="metrics-grid" id="overallMetrics"></div>
+            <div class="performance-chart" id="performanceChart">
+                📊 Performance Chart (Live Updates Every 30s)
+            </div>
+            <div id="channelBreakdown"></div>
+        </div>
+    </div>
+
+    <script>
+        let generatedUtmLinks = [];
+        let trackingInterval;
+
+        document.getElementById('autoUtmForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+            autoGenerateUtmLinks();
+        });
+
+        function autoGenerateUtmLinks() {
+            const baseUrl = document.getElementById('baseUrl').value;
+            const campaignName = document.getElementById('campaignName').value;
+            const selectedChannels = Array.from(document.getElementById('channels').selectedOptions).map(o => o.value);
+            const contentVariations = document.getElementById('contentVariations').value.split('\n').filter(v => v.trim());
+
+            if (selectedChannels.length === 0) {
+                alert('Please select at least one channel');
+                return;
+            }
+
+            generatedUtmLinks = [];
+            const channelConfig = {
+                'google-ads': { source: 'google', medium: 'cpc' },
+                'facebook': { source: 'facebook', medium: 'social' },
+                'instagram': { source: 'instagram', medium: 'social' },
+                'linkedin': { source: 'linkedin', medium: 'social' },
+                'email': { source: 'newsletter', medium: 'email' },
+                'twitter': { source: 'twitter', medium: 'social' }
+            };
+
+            selectedChannels.forEach(channel => {
+                const config = channelConfig[channel];
+                
+                if (contentVariations.length > 0) {
+                    contentVariations.forEach(content => {
+                        const utmLink = generateUtmUrl(baseUrl, config.source, config.medium, campaignName, '', content.trim());
+                        generatedUtmLinks.push({
+                            id: Date.now() + Math.random(),
+                            channel,
+                            content: content.trim(),
+                            url: utmLink,
+                            clicks: 0,
+                            conversions: 0,
+                            revenue: 0,
+                            ctr: 0,
+                            conversionRate: 0
+                        });
+                    });
+                } else {
+                    const utmLink = generateUtmUrl(baseUrl, config.source, config.medium, campaignName, '', '');
+                    generatedUtmLinks.push({
+                        id: Date.now() + Math.random(),
+                        channel,
+                        content: '',
+                        url: utmLink,
+                        clicks: 0,
+                        conversions: 0,
+                        revenue: 0,
+                        ctr: 0,
+                        conversionRate: 0
+                    });
+                }
+            });
+
+            displayGeneratedLinks();
+        }
+
+        function generateUtmUrl(baseUrl, source, medium, campaign, term, content) {
+            const url = new URL(baseUrl);
+            url.searchParams.set('utm_source', source);
+            url.searchParams.set('utm_medium', medium);
+            url.searchParams.set('utm_campaign', campaign.toLowerCase().replace(/\s+/g, '_'));
+            if (term) url.searchParams.set('utm_term', term);
+            if (content) url.searchParams.set('utm_content', content);
+            return url.toString();
+        }
+
+        function displayGeneratedLinks() {
+            const container = document.getElementById('linksList');
+            
+            container.innerHTML = generatedUtmLinks.map(link => `
+                <div class="utm-batch">
+                    <h4>${link.channel.toUpperCase()} ${link.content ? `- ${link.content}` : ''}</h4>
+                    <div style="font-family: monospace; font-size: 12px; background: #f8fafc; padding: 10px; border-radius: 4px; margin: 10px 0;">
+                        ${link.url}
+                    </div>
+                    <button onclick="copyToClipboard('${link.url}')">Copy URL</button>
+                    <div class="metrics-grid" style="margin-top: 10px;">
+                        <div class="metric-card">
+                            <div class="metric-value" id="clicks-${link.id}">${link.clicks}</div>
+                            <div>Clicks</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-value" id="conversions-${link.id}">${link.conversions}</div>
+                            <div>Conversions</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-value" id="revenue-${link.id}">$${link.revenue}</div>
+                            <div>Revenue</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-value" id="ctr-${link.id}">${link.ctr}%</div>
+                            <div>CTR</div>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+
+            document.getElementById('generatedLinks').style.display = 'block';
+        }
+
+        function startTracking() {
+            document.getElementById('performanceSection').style.display = 'block';
+            
+            // Simulate real-time tracking updates
+            trackingInterval = setInterval(() => {
+                updatePerformanceData();
+                updateDisplay();
+            }, 5000); // Update every 5 seconds for demo
+
+            updatePerformanceData();
+            updateDisplay();
+        }
+
+        function updatePerformanceData() {
+            generatedUtmLinks.forEach(link => {
+                // Simulate performance data updates
+                link.clicks += Math.floor(Math.random() * 5);
+                link.conversions += Math.floor(Math.random() * 2);
+                link.revenue += Math.floor(Math.random() * 50);
+                link.ctr = link.clicks > 0 ? ((link.conversions / link.clicks) * 100).toFixed(1) : 0;
+                link.conversionRate = link.clicks > 0 ? ((link.conversions / link.clicks) * 100).toFixed(1) : 0;
+            });
+        }
+
+        function updateDisplay() {
+            // Update individual link metrics
+            generatedUtmLinks.forEach(link => {
+                const clicksEl = document.getElementById(`clicks-${link.id}`);
+                const conversionsEl = document.getElementById(`conversions-${link.id}`);
+                const revenueEl = document.getElementById(`revenue-${link.id}`);
+                const ctrEl = document.getElementById(`ctr-${link.id}`);
+                
+                if (clicksEl) clicksEl.textContent = link.clicks;
+                if (conversionsEl) conversionsEl.textContent = link.conversions;
+                if (revenueEl) revenueEl.textContent = `$${link.revenue}`;
+                if (ctrEl) ctrEl.textContent = `${link.ctr}%`;
+            });
+
+            // Update overall metrics
+            const totalClicks = generatedUtmLinks.reduce((sum, link) => sum + link.clicks, 0);
+            const totalConversions = generatedUtmLinks.reduce((sum, link) => sum + link.conversions, 0);
+            const totalRevenue = generatedUtmLinks.reduce((sum, link) => sum + link.revenue, 0);
+            const avgCtr = totalClicks > 0 ? ((totalConversions / totalClicks) * 100).toFixed(1) : 0;
+
+            document.getElementById('overallMetrics').innerHTML = `
+                <div class="metric-card">
+                    <div class="metric-value">${totalClicks}</div>
+                    <div>Total Clicks</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-value">${totalConversions}</div>
+                    <div>Total Conversions</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-value">$${totalRevenue}</div>
+                    <div>Total Revenue</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-value">${avgCtr}%</div>
+                    <div>Avg CTR</div>
+                </div>
+            `;
+
+            // Update channel breakdown
+            const channelStats = {};
+            generatedUtmLinks.forEach(link => {
+                if (!channelStats[link.channel]) {
+                    channelStats[link.channel] = { clicks: 0, conversions: 0, revenue: 0 };
+                }
+                channelStats[link.channel].clicks += link.clicks;
+                channelStats[link.channel].conversions += link.conversions;
+                channelStats[link.channel].revenue += link.revenue;
+            });
+
+            document.getElementById('channelBreakdown').innerHTML = `
+                <h3>Channel Performance Breakdown</h3>
+                ${Object.entries(channelStats).map(([channel, stats]) => `
+                    <div class="utm-batch">
+                        <h4>${channel.toUpperCase()}</h4>
+                        <div class="metrics-grid">
+                            <div class="metric-card">
+                                <div class="metric-value">${stats.clicks}</div>
+                                <div>Clicks</div>
+                            </div>
+                            <div class="metric-card">
+                                <div class="metric-value">${stats.conversions}</div>
+                                <div>Conversions</div>
+                            </div>
+                            <div class="metric-card">
+                                <div class="metric-value">$${stats.revenue}</div>
+                                <div>Revenue</div>
+                            </div>
+                            <div class="metric-card">
+                                <div class="metric-value">${stats.clicks > 0 ? ((stats.conversions / stats.clicks) * 100).toFixed(1) : 0}%</div>
+                                <div>CTR</div>
+                            </div>
+                        </div>
+                    </div>
+                `).join('')}
+            `;
+        }
+
+        function copyToClipboard(url) {
+            navigator.clipboard.writeText(url).then(() => {
+                alert('UTM URL copied to clipboard!');
+            });
+        }
+
+        // Stop tracking when page unloads
+        window.addEventListener('beforeunload', () => {
+            if (trackingInterval) {
+                clearInterval(trackingInterval);
+            }
+        });
+    </script>
+</body>
+</html>

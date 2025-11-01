@@ -38,8 +38,12 @@ export default function CampaignsPage() {
             </div>
           </div>
           <button 
-            onClick={() => setShowCreateForm(true)}
-            className="btn-primary"
+            onClick={() => {
+              alert('Button clicked!');
+              setShowCreateForm(true);
+            }}
+            className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 cursor-pointer"
+            style={{ minHeight: '40px', minWidth: '120px' }}
           >
             Create Campaign
           </button>
@@ -162,6 +166,7 @@ export default function CampaignsPage() {
                     <div className="flex flex-col md:flex-row gap-1 md:gap-2">
                       <button 
                         onClick={() => {
+                          alert(`${campaign.status === 'active' ? 'Pausing' : 'Activating'} campaign`);
                           const updatedCampaigns = campaigns.map(c => 
                             c.id === campaign.id 
                               ? {...c, status: c.status === 'active' ? 'paused' : 'active'}
@@ -170,11 +175,18 @@ export default function CampaignsPage() {
                           console.log('Updating campaign status:', updatedCampaigns);
                           store.updateCampaigns(updatedCampaigns);
                         }}
-                        className="btn-secondary text-xs px-2 py-1"
+                        className="bg-gray-200 text-gray-800 px-2 py-1 rounded text-xs hover:bg-gray-300 cursor-pointer"
+                        style={{ minHeight: '28px' }}
                       >
                         {campaign.status === 'active' ? 'Pause' : 'Activate'}
                       </button>
-                      <button className="btn-primary text-xs px-2 py-1">View</button>
+                      <button 
+                        onClick={() => alert('View clicked!')}
+                        className="bg-blue-600 text-white px-2 py-1 rounded text-xs hover:bg-blue-700 cursor-pointer"
+                        style={{ minHeight: '28px' }}
+                      >
+                        View
+                      </button>
                     </div>
                   </td>
                 </tr>

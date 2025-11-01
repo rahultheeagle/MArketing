@@ -12,6 +12,7 @@ export default function DashboardPage() {
     { text: 'Report generated', time: 60, id: 3 }
   ]);
   const [updateCounter, setUpdateCounter] = useState(0);
+  const [forceUpdate, setForceUpdate] = useState(0);
   const [metrics, setMetrics] = useState({
     totalCampaigns: 12,
     activeCampaigns: 8,
@@ -26,18 +27,23 @@ export default function DashboardPage() {
       // Update activity times
       setActivities(prev => prev.map(activity => ({
         ...activity,
-        time: activity.time + 0.083 // Increment by 5 seconds
+        time: activity.time + 0.033 // Increment by 2 seconds
       })));
       
       setUpdateCounter(prev => prev + 1);
+      setForceUpdate(prev => prev + 1);
       
       // Update metrics with realistic changes
-      setMetrics(prev => ({
-        totalCampaigns: prev.totalCampaigns + (Math.random() < 0.05 ? 1 : 0),
-        activeCampaigns: Math.min(prev.totalCampaigns, prev.activeCampaigns + (Math.random() < 0.03 ? (Math.random() < 0.5 ? 1 : -1) : 0)),
-        totalClicks: prev.totalClicks + Math.floor(Math.random() * 15) + 5,
-        todayClicks: prev.todayClicks + Math.floor(Math.random() * 8) + 2
-      }));
+      setMetrics(prev => {
+        const newMetrics = {
+          totalCampaigns: prev.totalCampaigns + (Math.random() < 0.1 ? 1 : 0),
+          activeCampaigns: Math.min(prev.totalCampaigns + 1, prev.activeCampaigns + (Math.random() < 0.2 ? (Math.random() < 0.5 ? 1 : -1) : 0)),
+          totalClicks: prev.totalClicks + Math.floor(Math.random() * 20) + 10,
+          todayClicks: prev.todayClicks + Math.floor(Math.random() * 12) + 5
+        };
+        console.log('Updating metrics:', newMetrics);
+        return newMetrics;
+      });
       
       // Occasionally add new activities
       if (Math.random() < 0.3) {
@@ -51,11 +57,11 @@ export default function DashboardPage() {
         const randomActivity = newActivities[Math.floor(Math.random() * newActivities.length)];
         
         setActivities(prev => [
-          { text: randomActivity, time: 0.083 },
+          { text: randomActivity, time: 0.033 },
           ...prev.slice(0, 2)
         ]);
       }
-    }, 5000);
+    }, 2000);
 
     return () => clearInterval(interval);
   }, []);
@@ -89,6 +95,7 @@ export default function DashboardPage() {
       </div>
 
       <MetricsGrid 
+        key={forceUpdate}
         campaigns={dashboardData.campaigns}
         clicks={dashboardData.clicks}
       />

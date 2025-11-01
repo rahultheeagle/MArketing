@@ -64,7 +64,7 @@ export default function CompetitorGrid({ competitors }: CompetitorGridProps) {
               ))}
             </div>
             
-            <div className="flex space-x-2">
+            <div className="flex flex-col md:flex-row gap-2">
               <button className="btn-secondary text-sm flex-1">View Details</button>
               <button className="btn-primary text-sm flex-1">Analyze</button>
             </div>

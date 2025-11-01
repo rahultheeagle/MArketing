@@ -14,12 +14,14 @@ export default function RootLayout({
     <html lang="en">
       <body className="bg-gray-50 min-h-screen">
         <nav className="bg-gradient-to-r from-purple-600 to-blue-600 text-white p-4">
-          <div className="container mx-auto flex justify-between items-center">
-            <h1 className="text-2xl font-bold">🎯 CampaignPulse</h1>
-            <div className="space-x-4">
-              <a href="/dashboard" className="hover:underline">Dashboard</a>
-              <a href="/dashboard/competitors" className="hover:underline">Competitors</a>
-              <a href="/dashboard/reports" className="hover:underline">Reports</a>
+          <div className="container mx-auto flex flex-col md:flex-row justify-between items-center">
+            <h1 className="text-xl md:text-2xl font-bold mb-2 md:mb-0">🎯 CampaignPulse</h1>
+            <div className="flex flex-wrap gap-2 md:gap-4">
+              <a href="/dashboard" className="px-3 py-1 rounded hover:bg-white/20 transition-colors">Dashboard</a>
+              <a href="/dashboard/competitors" className="px-3 py-1 rounded hover:bg-white/20 transition-colors">Competitors</a>
+              <a href="/dashboard/campaigns" className="px-3 py-1 rounded hover:bg-white/20 transition-colors">Campaigns</a>
+              <a href="/dashboard/analytics" className="px-3 py-1 rounded hover:bg-white/20 transition-colors">Analytics</a>
+              <a href="/dashboard/reports" className="px-3 py-1 rounded hover:bg-white/20 transition-colors">Reports</a>
             </div>
           </div>
         </nav>

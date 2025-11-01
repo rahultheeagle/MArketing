@@ -19,7 +19,7 @@ export default function DashboardPage() {
       // Update activity times
       setActivities(prev => prev.map(activity => ({
         ...activity,
-        time: activity.time + 0.5 // Increment by 30 seconds
+        time: activity.time + 0.083 // Increment by 5 seconds
       })));
       
       // Occasionally add new activities
@@ -34,11 +34,11 @@ export default function DashboardPage() {
         const randomActivity = newActivities[Math.floor(Math.random() * newActivities.length)];
         
         setActivities(prev => [
-          { text: randomActivity, time: 0.5 },
+          { text: randomActivity, time: 0.083 },
           ...prev.slice(0, 2)
         ]);
       }
-    }, 30000);
+    }, 5000);
 
     return () => clearInterval(interval);
   }, []);

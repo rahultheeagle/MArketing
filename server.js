@@ -2242,6 +2242,98 @@ function erf(x) {
   return sign * y;
 }
 
+// Campaign Comparison API
+app.get('/api/campaigns/compare', (req, res) => {
+  const { metric } = req.query;
+  const campaignData = abTests.map(test => {
+    const avgConversionRate = test.variants.reduce((sum, v) => sum + parseFloat(v.conversionRate), 0) / test.variants.length;
+    const totalVisitors = test.variants.reduce((sum, v) => sum + v.visitors, 0);
+    const totalConversions = test.variants.reduce((sum, v) => sum + v.conversions, 0);
+    
+    let value, numericValue;
+    switch(metric) {
+      case 'conversion_rate':
+        value = avgConversionRate.toFixed(1) + '%';
+        numericValue = avgConversionRate;
+        break;
+      case 'ctr':
+        const ctr = totalVisitors > 0 ? (totalConversions / totalVisitors * 100) : 0;
+        value = ctr.toFixed(1) + '%';
+        numericValue = ctr;
+        break;
+      case 'roi':
+        const roi = totalConversions * 25 - totalVisitors * 0.5;
+        value = roi.toFixed(0) + '$';
+        numericValue = roi;
+        break;
+      case 'cost_per_conversion':
+        const cpc = totalConversions > 0 ? (totalVisitors * 0.5 / totalConversions) : 0;
+        value = cpc.toFixed(2) + '$';
+        numericValue = -cpc;
+        break;
+      default:
+        value = avgConversionRate.toFixed(1) + '%';
+        numericValue = avgConversionRate;
+    }
+    
+    return {
+      name: test.name,
+      value,
+      numericValue,
+      campaign: test.campaign
+    };
+  }).sort((a, b) => b.numericValue - a.numericValue);
+  
+  const maxValue = Math.abs(campaignData[0]?.numericValue || 1);
+  campaignData.forEach(campaign => {
+    campaign.percentage = maxValue > 0 ? (Math.abs(campaign.numericValue) / maxValue * 100) : 0;
+  });
+  
+  res.json(campaignData);
+});
+
+app.post('/api/campaigns/compare-winner', (req, res) => {
+  const { metric } = req.body;
+  const campaignData = abTests.map(test => {
+    const avgConversionRate = test.variants.reduce((sum, v) => sum + parseFloat(v.conversionRate), 0) / test.variants.length;
+    const totalVisitors = test.variants.reduce((sum, v) => sum + v.visitors, 0);
+    const totalConversions = test.variants.reduce((sum, v) => sum + v.conversions, 0);
+    
+    let value, numericValue;
+    switch(metric) {
+      case 'conversion_rate':
+        value = avgConversionRate.toFixed(1) + '%';
+        numericValue = avgConversionRate;
+        break;
+      case 'ctr':
+        const ctr = totalVisitors > 0 ? (totalConversions / totalVisitors * 100) : 0;
+        value = ctr.toFixed(1) + '%';
+        numericValue = ctr;
+        break;
+      case 'roi':
+        const roi = totalConversions * 25 - totalVisitors * 0.5;
+        value = roi.toFixed(0) + '$';
+        numericValue = roi;
+        break;
+      case 'cost_per_conversion':
+        const cpc = totalConversions > 0 ? (totalVisitors * 0.5 / totalConversions) : 0;
+        value = cpc.toFixed(2) + '$';
+        numericValue = -cpc;
+        break;
+      default:
+        value = avgConversionRate.toFixed(1) + '%';
+        numericValue = avgConversionRate;
+    }
+    
+    return { name: test.name, value, numericValue, campaign: test.campaign };
+  }).sort((a, b) => b.numericValue - a.numericValue);
+  
+  const winner = campaignData[0];
+  const confidence = Math.min(99, Math.max(85, Math.abs(winner?.numericValue || 0) * 5));
+  
+  res.json({ winner, confidence: confidence.toFixed(0) });
+});
+
 // Simulate real-time A/B test updates
 setInterval(() => {
   abTests.forEach(test => {

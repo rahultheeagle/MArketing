@@ -1,0 +1,32 @@
+import './globals.css';
+
+export const metadata = {
+  title: 'CampaignPulse - Marketing Analytics Dashboard',
+  description: 'Multi-channel marketing campaign analytics with AI insights',
+};
+
+export default function RootLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  return (
+    <html lang="en">
+      <body className="bg-gray-50 min-h-screen">
+        <nav className="bg-gradient-to-r from-purple-600 to-blue-600 text-white p-4">
+          <div className="container mx-auto flex justify-between items-center">
+            <h1 className="text-2xl font-bold">🎯 CampaignPulse</h1>
+            <div className="space-x-4">
+              <a href="/dashboard" className="hover:underline">Dashboard</a>
+              <a href="/dashboard/competitors" className="hover:underline">Competitors</a>
+              <a href="/dashboard/reports" className="hover:underline">Reports</a>
+            </div>
+          </div>
+        </nav>
+        <main className="container mx-auto p-6">
+          {children}
+        </main>
+      </body>
+    </html>
+  );
+}

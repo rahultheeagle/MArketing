@@ -39,7 +39,7 @@ export default function MetricsGrid({ campaigns, clicks }: MetricsGridProps) {
         <div key={`${metric.title}-${metric.value}`} className="metric-card">
           <h3 className="text-sm font-medium text-gray-500 mb-2">{metric.title}</h3>
           <div className={`text-2xl font-bold ${metric.color} mb-1`}>
-            {metric.value} ({new Date().getSeconds()})
+            {metric.value}
           </div>
           <div className="text-sm text-green-700 font-medium">{metric.change}</div>
         </div>

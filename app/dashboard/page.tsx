@@ -36,10 +36,10 @@ export default function DashboardPage() {
       // Update metrics with realistic changes
       setMetrics(prev => {
         const newMetrics = {
-          totalCampaigns: prev.totalCampaigns + (Math.random() < 0.1 ? 1 : 0),
-          activeCampaigns: Math.min(prev.totalCampaigns + 1, prev.activeCampaigns + (Math.random() < 0.2 ? (Math.random() < 0.5 ? 1 : -1) : 0)),
-          totalClicks: prev.totalClicks + Math.floor(Math.random() * 20) + 10,
-          todayClicks: prev.todayClicks + Math.floor(Math.random() * 12) + 5
+          totalCampaigns: prev.totalCampaigns + (Math.random() < 0.2 ? 1 : 0),
+          activeCampaigns: Math.max(1, Math.min(prev.totalCampaigns + 1, prev.activeCampaigns + (Math.random() < 0.3 ? (Math.random() < 0.5 ? 1 : -1) : 0))),
+          totalClicks: prev.totalClicks + Math.floor(Math.random() * 50) + 25,
+          todayClicks: prev.todayClicks + Math.floor(Math.random() * 20) + 10
         };
         console.log('Updating metrics:', newMetrics);
         return newMetrics;

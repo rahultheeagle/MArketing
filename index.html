@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Campaign Hub - CampaignPulse</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: Arial, sans-serif; background: #f5f5f5; }
+        .container { max-width: 1200px; margin: 0 auto; padding: 20px; }
+        .header { background: #2563eb; color: white; padding: 20px; border-radius: 8px; margin-bottom: 20px; }
+        .form-section { background: white; padding: 20px; border-radius: 8px; margin-bottom: 20px; }
+        .campaigns-section { background: white; padding: 20px; border-radius: 8px; }
+        .form-group { margin-bottom: 15px; }
+        label { display: block; margin-bottom: 5px; font-weight: bold; }
+        input, select { width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px; }
+        button { background: #2563eb; color: white; padding: 10px 20px; border: none; border-radius: 4px; cursor: pointer; }
+        button:hover { background: #1d4ed8; }
+        .campaign-card { border: 1px solid #ddd; padding: 15px; margin-bottom: 10px; border-radius: 4px; }
+        .channels { display: flex; gap: 10px; margin: 10px 0; }
+        .channel-tag { background: #e5e7eb; padding: 4px 8px; border-radius: 4px; font-size: 12px; }
+        .metrics { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-top: 10px; }
+        .metric { text-align: center; }
+        .metric-value { font-size: 18px; font-weight: bold; color: #2563eb; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Campaign Hub</h1>
+            <p>Create and track campaigns across multiple channels</p>
+        </div>
+
+        <div class="form-section">
+            <h2>Create New Campaign</h2>
+            <form id="campaignForm">
+                <div class="form-group">
+                    <label>Campaign Name</label>
+                    <input type="text" id="name" required>
+                </div>
+                <div class="form-group">
+                    <label>Channels (hold Ctrl to select multiple)</label>
+                    <select id="channels" multiple required>
+                        <option value="email">Email</option>
+                        <option value="facebook">Facebook Ads</option>
+                        <option value="google">Google Ads</option>
+                        <option value="instagram">Instagram</option>
+                        <option value="linkedin">LinkedIn</option>
+                        <option value="twitter">Twitter</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Budget ($)</label>
+                    <input type="number" id="budget" required>
+                </div>
+                <div class="form-group">
+                    <label>Start Date</label>
+                    <input type="date" id="startDate" required>
+                </div>
+                <div class="form-group">
+                    <label>End Date</label>
+                    <input type="date" id="endDate" required>
+                </div>
+                <button type="submit">Create Campaign</button>
+            </form>
+        </div>
+
+        <div class="campaigns-section">
+            <h2>Active Campaigns</h2>
+            <div id="campaignsList"></div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:3001/api';
+        
+        // Load campaigns on page load
+        document.addEventListener('DOMContentLoaded', loadCampaigns);
+        
+        // Handle form submission
+        document.getElementById('campaignForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const formData = {
+                name: document.getElementById('name').value,
+                channels: Array.from(document.getElementById('channels').selectedOptions).map(o => o.value),
+                budget: parseFloat(document.getElementById('budget').value),
+                startDate: document.getElementById('startDate').value,
+                endDate: document.getElementById('endDate').value
+            };
+            
+            try {
+                const response = await fetch(`${API_BASE}/campaigns`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(formData)
+                });
+                
+                if (response.ok) {
+                    document.getElementById('campaignForm').reset();
+                    loadCampaigns();
+                }
+            } catch (error) {
+                console.error('Error creating campaign:', error);
+            }
+        });
+        
+        async function loadCampaigns() {
+            try {
+                const response = await fetch(`${API_BASE}/campaigns`);
+                const campaigns = await response.json();
+                displayCampaigns(campaigns);
+            } catch (error) {
+                console.error('Error loading campaigns:', error);
+            }
+        }
+        
+        function displayCampaigns(campaigns) {
+            const container = document.getElementById('campaignsList');
+            
+            if (campaigns.length === 0) {
+                container.innerHTML = '<p>No campaigns created yet.</p>';
+                return;
+            }
+            
+            container.innerHTML = campaigns.map(campaign => `
+                <div class="campaign-card">
+                    <h3>${campaign.name}</h3>
+                    <div class="channels">
+                        ${campaign.channels.map(channel => `<span class="channel-tag">${channel}</span>`).join('')}
+                    </div>
+                    <p><strong>Budget:</strong> $${campaign.budget} | <strong>Status:</strong> ${campaign.status}</p>
+                    <p><strong>Duration:</strong> ${campaign.startDate} to ${campaign.endDate}</p>
+                    <div class="metrics">
+                        <div class="metric">
+                            <div class="metric-value">${campaign.metrics.impressions.toLocaleString()}</div>
+                            <div>Impressions</div>
+                        </div>
+                        <div class="metric">
+                            <div class="metric-value">${campaign.metrics.clicks.toLocaleString()}</div>
+                            <div>Clicks</div>
+                        </div>
+                        <div class="metric">
+                            <div class="metric-value">${campaign.metrics.conversions.toLocaleString()}</div>
+                            <div>Conversions</div>
+                        </div>
+                        <div class="metric">
+                            <div class="metric-value">$${campaign.metrics.spend.toLocaleString()}</div>
+                            <div>Spend</div>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+    </script>
+</body>
+</html>

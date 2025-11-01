@@ -12,6 +12,12 @@ export default function DashboardPage() {
     { text: 'Report generated', time: 60, id: 3 }
   ]);
   const [updateCounter, setUpdateCounter] = useState(0);
+  const [metrics, setMetrics] = useState({
+    totalCampaigns: 12,
+    activeCampaigns: 8,
+    totalClicks: 45230,
+    todayClicks: 1250
+  });
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -24,6 +30,14 @@ export default function DashboardPage() {
       })));
       
       setUpdateCounter(prev => prev + 1);
+      
+      // Update metrics with realistic changes
+      setMetrics(prev => ({
+        totalCampaigns: prev.totalCampaigns + (Math.random() < 0.05 ? 1 : 0),
+        activeCampaigns: Math.min(prev.totalCampaigns, prev.activeCampaigns + (Math.random() < 0.03 ? (Math.random() < 0.5 ? 1 : -1) : 0)),
+        totalClicks: prev.totalClicks + Math.floor(Math.random() * 15) + 5,
+        todayClicks: prev.todayClicks + Math.floor(Math.random() * 8) + 2
+      }));
       
       // Occasionally add new activities
       if (Math.random() < 0.3) {
@@ -54,8 +68,8 @@ export default function DashboardPage() {
   };
 
   const dashboardData = {
-    campaigns: { total: 12, active: 8 },
-    clicks: { total: 45230, today: 1250 },
+    campaigns: { total: metrics.totalCampaigns, active: metrics.activeCampaigns },
+    clicks: { total: metrics.totalClicks, today: metrics.todayClicks },
     timeSeries: Array.from({ length: 7 }, (_, i) => ({
       date: new Date(Date.now() - (6 - i) * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
       clicks: Math.floor(Math.random() * 2000) + 500

@@ -1,0 +1,4 @@
+FORCE DEPLOYMENT - Version 2.1.0
+Timestamp: 2024-01-15
+Changes: Clean dashboard, real-world homepage with 3D animations
+Status: FORCING FRESH VERCEL DEPLOYMENT

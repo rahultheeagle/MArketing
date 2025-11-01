@@ -1,13 +1,17 @@
+'use client';
 
-
-const mockCampaigns = [
-  { id: 1, name: 'Google Ads - Black Friday', status: 'active', budget: 660000, spent: 512600, clicks: 15420, conversions: 234 },
-  { id: 2, name: 'Facebook - Holiday Sale', status: 'active', budget: 495000, spent: 396000, clicks: 12350, conversions: 189 },
-  { id: 3, name: 'Email Newsletter', status: 'paused', budget: 206250, spent: 99000, clicks: 8900, conversions: 156 },
-  { id: 4, name: 'Instagram - Product Launch', status: 'active', budget: 330000, spent: 256300, clicks: 9800, conversions: 98 }
-];
+import { useState, useEffect } from 'react';
+import { store } from '@/lib/store';
 
 export default function CampaignsPage() {
+  const [campaigns, setCampaigns] = useState(store.getCampaigns());
+  
+  useEffect(() => {
+    const unsubscribe = store.subscribe(() => {
+      setCampaigns(store.getCampaigns());
+    });
+    return unsubscribe;
+  }, []);
   return (
     <div className="space-y-6">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
@@ -18,24 +22,24 @@ export default function CampaignsPage() {
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4 md:gap-6">
         <div className="metric-card">
           <h3 className="text-sm font-medium text-gray-500 mb-2">Total Campaigns</h3>
-          <div className="text-xl md:text-2xl font-bold text-blue-600">{mockCampaigns.length}</div>
+          <div className="text-xl md:text-2xl font-bold text-gray-900">{campaigns.length}</div>
         </div>
         <div className="metric-card">
           <h3 className="text-sm font-medium text-gray-500 mb-2">Active</h3>
           <div className="text-xl md:text-2xl font-bold text-green-600">
-            {mockCampaigns.filter(c => c.status === 'active').length}
+            {campaigns.filter(c => c.status === 'active').length}
           </div>
         </div>
         <div className="metric-card">
           <h3 className="text-sm font-medium text-gray-500 mb-2">Total Budget</h3>
           <div className="text-xl md:text-2xl font-bold text-purple-600">
-            ₹{mockCampaigns.reduce((sum, c) => sum + c.budget, 0).toLocaleString()}
+            ₹{campaigns.reduce((sum, c) => sum + c.budget, 0).toLocaleString()}
           </div>
         </div>
         <div className="metric-card">
           <h3 className="text-sm font-medium text-gray-500 mb-2">Total Spent</h3>
           <div className="text-xl md:text-2xl font-bold text-orange-600">
-            ₹{mockCampaigns.reduce((sum, c) => sum + c.spent, 0).toLocaleString()}
+            ₹{campaigns.reduce((sum, c) => sum + c.spent, 0).toLocaleString()}
           </div>
         </div>
       </div>
@@ -56,7 +60,7 @@ export default function CampaignsPage() {
               </tr>
             </thead>
             <tbody>
-              {mockCampaigns.map((campaign) => (
+              {campaigns.map((campaign) => (
                 <tr key={campaign.id} className="border-b hover:bg-gray-50">
                   <td className="p-2 md:p-3 font-medium">{campaign.name}</td>
                   <td className="p-2 md:p-3">

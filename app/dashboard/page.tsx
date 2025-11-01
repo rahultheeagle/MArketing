@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import MetricsGrid from '@/app/components/MetricsGrid';
 import CampaignChart from '@/app/components/CampaignChart';
+import { store } from '@/lib/store';
 
 export default function DashboardPage() {
   const [lastUpdated, setLastUpdated] = useState(new Date());
@@ -13,12 +14,7 @@ export default function DashboardPage() {
   ]);
   const [updateCounter, setUpdateCounter] = useState(0);
   const [forceUpdate, setForceUpdate] = useState(0);
-  const [metrics, setMetrics] = useState({
-    totalCampaigns: 12,
-    activeCampaigns: 8,
-    totalClicks: 45230,
-    todayClicks: 1250
-  });
+  const [metrics, setMetrics] = useState(store.getMetrics());
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -33,17 +29,13 @@ export default function DashboardPage() {
       setUpdateCounter(prev => prev + 1);
       setForceUpdate(prev => prev + 1);
       
-      // Update metrics with realistic changes
-      setMetrics(prev => {
-        const newMetrics = {
-          totalCampaigns: prev.totalCampaigns + (Math.random() < 0.2 ? 1 : 0),
-          activeCampaigns: Math.max(1, Math.min(prev.totalCampaigns + 1, prev.activeCampaigns + (Math.random() < 0.3 ? (Math.random() < 0.5 ? 1 : -1) : 0))),
-          totalClicks: prev.totalClicks + Math.floor(Math.random() * 50) + 25,
-          todayClicks: prev.todayClicks + Math.floor(Math.random() * 20) + 10
-        };
-        console.log('Updating metrics:', newMetrics);
-        return newMetrics;
-      });
+      // Update campaign data in store
+      store.updateCampaignClicks();
+      
+      // Get updated metrics from store
+      const newMetrics = store.getMetrics();
+      setMetrics(newMetrics);
+      console.log('Updated metrics from store:', newMetrics);
       
       // Occasionally add new activities
       if (Math.random() < 0.3) {

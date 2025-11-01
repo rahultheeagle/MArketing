@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Spend vs Results Tracker - CampaignPulse</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: Arial, sans-serif; background: #f5f5f5; }
+        .container { max-width: 1400px; margin: 0 auto; padding: 20px; }
+        .header { background: linear-gradient(135deg, #6366f1, #8b5cf6); color: white; padding: 20px; border-radius: 8px; margin-bottom: 20px; }
+        .metrics-overview { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-bottom: 20px; }
+        .metric-card { background: white; padding: 20px; border-radius: 8px; text-align: center; }
+        .metric-value { font-size: 28px; font-weight: bold; margin-bottom: 5px; }
+        .metric-label { font-size: 14px; color: #6b7280; margin-bottom: 10px; }
+        .metric-change { font-size: 12px; padding: 4px 8px; border-radius: 4px; }
+        .positive { background: #dcfce7; color: #166534; }
+        .negative { background: #fecaca; color: #991b1b; }
+        .efficiency-good { color: #059669; }
+        .efficiency-average { color: #f59e0b; }
+        .efficiency-poor { color: #dc2626; }
+        .analysis-grid { display: grid; grid-template-columns: 2fr 1fr; gap: 20px; margin-bottom: 20px; }
+        .chart-section { background: white; padding: 20px; border-radius: 8px; }
+        .chart-container { height: 350px; margin: 20px 0; }
+        .efficiency-ranking { background: white; padding: 20px; border-radius: 8px; }
+        .ranking-item { display: flex; justify-content: between; align-items: center; padding: 15px; border-bottom: 1px solid #f3f4f6; }
+        .rank-number { width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; color: white; margin-right: 15px; }
+        .rank-1 { background: #fbbf24; }
+        .rank-2 { background: #9ca3af; }
+        .rank-3 { background: #f97316; }
+        .rank-other { background: #6b7280; }
+        .campaign-info { flex: 1; }
+        .campaign-name { font-weight: bold; margin-bottom: 5px; }
+        .campaign-metrics { font-size: 12px; color: #6b7280; }
+        .efficiency-score { text-align: right; }
+        .score-value { font-size: 18px; font-weight: bold; }
+        .score-label { font-size: 11px; color: #6b7280; }
+        .campaign-comparison { background: white; padding: 20px; border-radius: 8px; margin-bottom: 20px; }
+        .comparison-table { width: 100%; border-collapse: collapse; }
+        .comparison-table th, .comparison-table td { padding: 12px; text-align: left; border-bottom: 1px solid #f3f4f6; }
+        .comparison-table th { background: #f8fafc; font-weight: bold; }
+        .spend-bar { width: 100px; height: 20px; background: #f3f4f6; border-radius: 10px; overflow: hidden; position: relative; }
+        .spend-fill { height: 100%; background: linear-gradient(90deg, #6366f1, #8b5cf6); }
+        .results-bar { width: 100px; height: 20px; background: #f3f4f6; border-radius: 10px; overflow: hidden; position: relative; }
+        .results-fill { height: 100%; background: linear-gradient(90deg, #10b981, #059669); }
+        .roi-indicator { padding: 4px 8px; border-radius: 4px; font-size: 11px; font-weight: bold; color: white; }
+        .roi-excellent { background: #059669; }
+        .roi-good { background: #10b981; }
+        .roi-average { background: #f59e0b; }
+        .roi-poor { background: #dc2626; }
+        .insights-section { background: white; padding: 20px; border-radius: 8px; }
+        .insight-item { padding: 15px; margin: 10px 0; border-left: 4px solid #6366f1; background: #f8fafc; border-radius: 4px; }
+        .insight-title { font-weight: bold; color: #6366f1; margin-bottom: 5px; }
+        .insight-description { font-size: 14px; color: #4b5563; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📊 Spend vs Results Tracker</h1>
+            <p>Analyze campaign efficiency, ROI, and cost-effectiveness across all marketing channels</p>
+        </div>
+
+        <div class="metrics-overview">
+            <div class="metric-card">
+                <div class="metric-value efficiency-good" id="overallROI">245%</div>
+                <div class="metric-label">Overall ROI</div>
+                <div class="metric-change positive" id="roiChange">+15%</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-value" id="totalSpend">$15,420</div>
+                <div class="metric-label">Total Spend</div>
+                <div class="metric-change positive" id="spendChange">+8%</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-value efficiency-good" id="totalResults">$37,780</div>
+                <div class="metric-label">Total Results</div>
+                <div class="metric-change positive" id="resultsChange">+22%</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-value efficiency-average" id="avgCostPerResult">$45.12</div>
+                <div class="metric-label">Avg Cost/Result</div>
+                <div class="metric-change negative" id="costChange">-5%</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-value efficiency-good" id="efficiencyScore">8.2</div>
+                <div class="metric-label">Efficiency Score</div>
+                <div class="metric-change positive" id="efficiencyChange">+0.8</div>
+            </div>
+        </div>
+
+        <div class="analysis-grid">
+            <div class="chart-section">
+                <h2>Spend vs Results Analysis</h2>
+                <div class="chart-container">
+                    <canvas id="spendResultsChart"></canvas>
+                </div>
+            </div>
+            <div class="efficiency-ranking">
+                <h2>Campaign Efficiency Ranking</h2>
+                <div id="efficiencyRanking"></div>
+            </div>
+        </div>
+
+        <div class="campaign-comparison">
+            <h2>Campaign Performance Comparison</h2>
+            <table class="comparison-table">
+                <thead>
+                    <tr>
+                        <th>Campaign</th>
+                        <th>Spend</th>
+                        <th>Results</th>
+                        <th>ROI</th>
+                        <th>Cost/Result</th>
+                        <th>Efficiency</th>
+                    </tr>
+                </thead>
+                <tbody id="comparisonTableBody"></tbody>
+            </table>
+        </div>
+
+        <div class="insights-section">
+            <h2>Performance Insights</h2>
+            <div id="performanceInsights"></div>
+        </div>
+    </div>
+
+    <script>
+        let spendResultsChart;
+        let campaignData = [
+            {
+                id: 'email-newsletter',
+                name: 'Email Newsletter',
+                spend: 1200,
+                results: 8640,
+                conversions: 144,
+                roi: 620,
+                costPerResult: 8.33,
+                efficiencyScore: 9.5
+            },
+            {
+                id: 'google-ads',
+                name: 'Google Ads - Black Friday',
+                spend: 6800,
+                results: 15300,
+                conversions: 255,
+                roi: 125,
+                costPerResult: 26.67,
+                efficiencyScore: 7.8
+            },
+            {
+                id: 'facebook-ads',
+                name: 'Facebook - Holiday Sale',
+                spend: 4200,
+                results: 8820,
+                conversions: 147,
+                roi: 110,
+                costPerResult: 28.57,
+                efficiencyScore: 7.2
+            },
+            {
+                id: 'instagram-ads',
+                name: 'Instagram - Product Launch',
+                spend: 2100,
+                results: 3570,
+                conversions: 85,
+                roi: 70,
+                costPerResult: 24.71,
+                efficiencyScore: 6.1
+            },
+            {
+                id: 'linkedin-ads',
+                name: 'LinkedIn B2B',
+                spend: 1120,
+                results: 1450,
+                conversions: 29,
+                roi: 29,
+                costPerResult: 38.62,
+                efficiencyScore: 4.8
+            }
+        ];
+
+        document.addEventListener('DOMContentLoaded', () => {
+            updateOverallMetrics();
+            initializeSpendResultsChart();
+            displayEfficiencyRanking();
+            displayComparisonTable();
+            generateInsights();
+            startRealTimeUpdates();
+        });
+
+        function updateOverallMetrics() {
+            const totalSpend = campaignData.reduce((sum, c) => sum + c.spend, 0);
+            const totalResults = campaignData.reduce((sum, c) => sum + c.results, 0);
+            const overallROI = ((totalResults - totalSpend) / totalSpend * 100).toFixed(0);
+            const avgCostPerResult = (totalSpend / campaignData.reduce((sum, c) => sum + c.conversions, 0)).toFixed(2);
+            const avgEfficiency = (campaignData.reduce((sum, c) => sum + c.efficiencyScore, 0) / campaignData.length).toFixed(1);
+
+            document.getElementById('overallROI').textContent = overallROI + '%';
+            document.getElementById('totalSpend').textContent = '$' + totalSpend.toLocaleString();
+            document.getElementById('totalResults').textContent = '$' + totalResults.toLocaleString();
+            document.getElementById('avgCostPerResult').textContent = '$' + avgCostPerResult;
+            document.getElementById('efficiencyScore').textContent = avgEfficiency;
+
+            // Update efficiency colors
+            updateEfficiencyColor('overallROI', parseFloat(overallROI));
+            updateEfficiencyColor('efficiencyScore', parseFloat(avgEfficiency));
+            updateEfficiencyColor('avgCostPerResult', 100 - parseFloat(avgCostPerResult)); // Inverse for cost
+        }
+
+        function updateEfficiencyColor(elementId, value) {
+            const element = document.getElementById(elementId);
+            element.className = element.className.replace(/efficiency-\w+/, '');
+            
+            if (value >= 200 || value >= 8) element.classList.add('efficiency-good');
+            else if (value >= 100 || value >= 6) element.classList.add('efficiency-average');
+            else element.classList.add('efficiency-poor');
+        }
+
+        function initializeSpendResultsChart() {
+            const ctx = document.getElementById('spendResultsChart').getContext('2d');
+            
+            spendResultsChart = new Chart(ctx, {
+                type: 'scatter',
+                data: {
+                    datasets: [{
+                        label: 'Campaign Performance',
+                        data: campaignData.map(campaign => ({
+                            x: campaign.spend,
+                            y: campaign.results,
+                            campaign: campaign.name,
+                            roi: campaign.roi
+                        })),
+                        backgroundColor: campaignData.map(campaign => {
+                            if (campaign.roi >= 200) return '#059669';
+                            if (campaign.roi >= 100) return '#10b981';
+                            if (campaign.roi >= 50) return '#f59e0b';
+                            return '#dc2626';
+                        }),
+                        borderColor: '#6366f1',
+                        borderWidth: 2,
+                        pointRadius: 8,
+                        pointHoverRadius: 12
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            callbacks: {
+                                title: function(context) {
+                                    return context[0].raw.campaign;
+                                },
+                                label: function(context) {
+                                    return [
+                                        `Spend: $${context.raw.x.toLocaleString()}`,
+                                        `Results: $${context.raw.y.toLocaleString()}`,
+                                        `ROI: ${context.raw.roi}%`
+                                    ];
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            title: { display: true, text: 'Spend ($)' },
+                            ticks: {
+                                callback: function(value) {
+                                    return '$' + value.toLocaleString();
+                                }
+                            }
+                        },
+                        y: {
+                            title: { display: true, text: 'Results ($)' },
+                            ticks: {
+                                callback: function(value) {
+                                    return '$' + value.toLocaleString();
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        function displayEfficiencyRanking() {
+            const sortedCampaigns = [...campaignData].sort((a, b) => b.efficiencyScore - a.efficiencyScore);
+            const container = document.getElementById('efficiencyRanking');
+
+            container.innerHTML = sortedCampaigns.map((campaign, index) => {
+                const rankClass = index === 0 ? 'rank-1' : index === 1 ? 'rank-2' : index === 2 ? 'rank-3' : 'rank-other';
+                
+                return `
+                    <div class="ranking-item">
+                        <div class="rank-number ${rankClass}">${index + 1}</div>
+                        <div class="campaign-info">
+                            <div class="campaign-name">${campaign.name}</div>
+                            <div class="campaign-metrics">
+                                ROI: ${campaign.roi}% • Cost/Result: $${campaign.costPerResult}
+                            </div>
+                        </div>
+                        <div class="efficiency-score">
+                            <div class="score-value">${campaign.efficiencyScore}</div>
+                            <div class="score-label">Efficiency</div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function displayComparisonTable() {
+            const container = document.getElementById('comparisonTableBody');
+            const maxSpend = Math.max(...campaignData.map(c => c.spend));
+            const maxResults = Math.max(...campaignData.map(c => c.results));
+
+            container.innerHTML = campaignData.map(campaign => {
+                const spendPercentage = (campaign.spend / maxSpend) * 100;
+                const resultsPercentage = (campaign.results / maxResults) * 100;
+                const roiClass = campaign.roi >= 200 ? 'roi-excellent' : 
+                               campaign.roi >= 100 ? 'roi-good' : 
+                               campaign.roi >= 50 ? 'roi-average' : 'roi-poor';
+
+                return `
+                    <tr>
+                        <td>${campaign.name}</td>
+                        <td>
+                            <div class="spend-bar">
+                                <div class="spend-fill" style="width: ${spendPercentage}%"></div>
+                            </div>
+                            <div style="font-size: 11px; margin-top: 2px;">$${campaign.spend.toLocaleString()}</div>
+                        </td>
+                        <td>
+                            <div class="results-bar">
+                                <div class="results-fill" style="width: ${resultsPercentage}%"></div>
+                            </div>
+                            <div style="font-size: 11px; margin-top: 2px;">$${campaign.results.toLocaleString()}</div>
+                        </td>
+                        <td>
+                            <span class="roi-indicator ${roiClass}">${campaign.roi}%</span>
+                        </td>
+                        <td>$${campaign.costPerResult}</td>
+                        <td>
+                            <div style="font-weight: bold; color: ${campaign.efficiencyScore >= 8 ? '#059669' : campaign.efficiencyScore >= 6 ? '#f59e0b' : '#dc2626'};">
+                                ${campaign.efficiencyScore}/10
+                            </div>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        function generateInsights() {
+            const container = document.getElementById('performanceInsights');
+            const bestPerformer = campaignData.reduce((prev, current) => 
+                prev.efficiencyScore > current.efficiencyScore ? prev : current
+            );
+            const worstPerformer = campaignData.reduce((prev, current) => 
+                prev.efficiencyScore < current.efficiencyScore ? prev : current
+            );
+            const totalSpend = campaignData.reduce((sum, c) => sum + c.spend, 0);
+            const totalResults = campaignData.reduce((sum, c) => sum + c.results, 0);
+
+            const insights = [
+                {
+                    title: 'Top Performer',
+                    description: `${bestPerformer.name} delivers the highest efficiency score of ${bestPerformer.efficiencyScore}/10 with ${bestPerformer.roi}% ROI`
+                },
+                {
+                    title: 'Optimization Opportunity',
+                    description: `${worstPerformer.name} has the lowest efficiency score (${worstPerformer.efficiencyScore}/10). Consider reallocating budget or optimizing targeting.`
+                },
+                {
+                    title: 'Budget Efficiency',
+                    description: `Overall portfolio generates $${(totalResults/totalSpend).toFixed(2)} in results for every $1 spent across all campaigns`
+                },
+                {
+                    title: 'Cost Optimization',
+                    description: `Email campaigns show 3x better cost efficiency than paid social. Consider increasing email budget allocation.`
+                }
+            ];
+
+            container.innerHTML = insights.map(insight => `
+                <div class="insight-item">
+                    <div class="insight-title">${insight.title}</div>
+                    <div class="insight-description">${insight.description}</div>
+                </div>
+            `).join('');
+        }
+
+        function startRealTimeUpdates() {
+            setInterval(() => {
+                // Simulate real-time data updates
+                campaignData.forEach(campaign => {
+                    const spendIncrease = Math.floor(Math.random() * 100) + 10;
+                    const resultsIncrease = Math.floor(Math.random() * 200) + 50;
+                    
+                    campaign.spend += spendIncrease;
+                    campaign.results += resultsIncrease;
+                    campaign.conversions += Math.floor(Math.random() * 5) + 1;
+                    
+                    // Recalculate metrics
+                    campaign.roi = ((campaign.results - campaign.spend) / campaign.spend * 100).toFixed(0);
+                    campaign.costPerResult = (campaign.spend / campaign.conversions).toFixed(2);
+                    campaign.efficiencyScore = Math.min(10, (campaign.roi / 100 * 5 + (100 - campaign.costPerResult) / 10)).toFixed(1);
+                });
+
+                updateOverallMetrics();
+                displayEfficiencyRanking();
+                displayComparisonTable();
+                generateInsights();
+                
+                // Update chart
+                spendResultsChart.data.datasets[0].data = campaignData.map(campaign => ({
+                    x: campaign.spend,
+                    y: campaign.results,
+                    campaign: campaign.name,
+                    roi: campaign.roi
+                }));
+                spendResultsChart.update('none');
+                
+            }, 15000); // Update every 15 seconds
+        }
+    </script>
+</body>
+</html>

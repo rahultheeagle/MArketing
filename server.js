@@ -1497,6 +1497,268 @@ function checkBudgetAlerts(campaign) {
   return alerts;
 }
 
+// Spend vs Results Tracking
+let spendResultsData = {
+  campaigns: [
+    {
+      id: 'email-newsletter',
+      name: 'Email Newsletter',
+      spend: 1200,
+      results: 8640,
+      conversions: 144,
+      clicks: 2880,
+      impressions: 48000,
+      roi: 620,
+      costPerResult: 8.33,
+      costPerClick: 0.42,
+      costPerConversion: 8.33,
+      efficiencyScore: 9.5,
+      revenuePerDollar: 7.20
+    },
+    {
+      id: 'google-ads',
+      name: 'Google Ads - Black Friday',
+      spend: 6800,
+      results: 15300,
+      conversions: 255,
+      clicks: 4250,
+      impressions: 125000,
+      roi: 125,
+      costPerResult: 26.67,
+      costPerClick: 1.60,
+      costPerConversion: 26.67,
+      efficiencyScore: 7.8,
+      revenuePerDollar: 2.25
+    },
+    {
+      id: 'facebook-ads',
+      name: 'Facebook - Holiday Sale',
+      spend: 4200,
+      results: 8820,
+      conversions: 147,
+      clicks: 3150,
+      impressions: 95000,
+      roi: 110,
+      costPerResult: 28.57,
+      costPerClick: 1.33,
+      costPerConversion: 28.57,
+      efficiencyScore: 7.2,
+      revenuePerDollar: 2.10
+    },
+    {
+      id: 'instagram-ads',
+      name: 'Instagram - Product Launch',
+      spend: 2100,
+      results: 3570,
+      conversions: 85,
+      clicks: 1890,
+      impressions: 42000,
+      roi: 70,
+      costPerResult: 24.71,
+      costPerClick: 1.11,
+      costPerConversion: 24.71,
+      efficiencyScore: 6.1,
+      revenuePerDollar: 1.70
+    },
+    {
+      id: 'linkedin-ads',
+      name: 'LinkedIn B2B',
+      spend: 1120,
+      results: 1450,
+      conversions: 29,
+      clicks: 560,
+      impressions: 18000,
+      roi: 29,
+      costPerResult: 38.62,
+      costPerClick: 2.00,
+      costPerConversion: 38.62,
+      efficiencyScore: 4.8,
+      revenuePerDollar: 1.29
+    }
+  ]
+};
+
+// Get spend vs results analysis
+app.get('/api/spend-results', (req, res) => {
+  const totalSpend = spendResultsData.campaigns.reduce((sum, c) => sum + c.spend, 0);
+  const totalResults = spendResultsData.campaigns.reduce((sum, c) => sum + c.results, 0);
+  const totalConversions = spendResultsData.campaigns.reduce((sum, c) => sum + c.conversions, 0);
+  const overallROI = ((totalResults - totalSpend) / totalSpend * 100).toFixed(1);
+  const avgCostPerResult = (totalSpend / totalConversions).toFixed(2);
+  const avgEfficiency = (spendResultsData.campaigns.reduce((sum, c) => sum + c.efficiencyScore, 0) / spendResultsData.campaigns.length).toFixed(1);
+  
+  // Calculate efficiency ranking
+  const rankedCampaigns = [...spendResultsData.campaigns]
+    .sort((a, b) => b.efficiencyScore - a.efficiencyScore)
+    .map((campaign, index) => ({ ...campaign, rank: index + 1 }));
+  
+  // Generate insights
+  const bestPerformer = rankedCampaigns[0];
+  const worstPerformer = rankedCampaigns[rankedCampaigns.length - 1];
+  
+  const insights = [
+    {
+      type: 'top_performer',
+      title: 'Top Performer',
+      description: `${bestPerformer.name} delivers the highest efficiency score of ${bestPerformer.efficiencyScore}/10 with ${bestPerformer.roi}% ROI`,
+      campaign: bestPerformer.id,
+      impact: 'positive'
+    },
+    {
+      type: 'optimization_opportunity',
+      title: 'Optimization Opportunity',
+      description: `${worstPerformer.name} has the lowest efficiency score (${worstPerformer.efficiencyScore}/10). Consider reallocating budget or optimizing targeting.`,
+      campaign: worstPerformer.id,
+      impact: 'negative'
+    },
+    {
+      type: 'budget_efficiency',
+      title: 'Budget Efficiency',
+      description: `Overall portfolio generates $${(totalResults/totalSpend).toFixed(2)} in results for every $1 spent across all campaigns`,
+      impact: 'neutral'
+    }
+  ];
+  
+  res.json({
+    overview: {
+      totalSpend,
+      totalResults,
+      totalConversions,
+      overallROI: parseFloat(overallROI),
+      avgCostPerResult: parseFloat(avgCostPerResult),
+      avgEfficiency: parseFloat(avgEfficiency),
+      revenuePerDollar: (totalResults / totalSpend).toFixed(2)
+    },
+    campaigns: rankedCampaigns,
+    insights,
+    benchmarks: {
+      excellentROI: 200,
+      goodROI: 100,
+      averageROI: 50,
+      excellentEfficiency: 8,
+      goodEfficiency: 6,
+      averageEfficiency: 4
+    }
+  });
+});
+
+// Get campaign efficiency comparison
+app.get('/api/spend-results/comparison', (req, res) => {
+  const { metric = 'efficiency' } = req.query;
+  
+  let sortedCampaigns;
+  switch(metric) {
+    case 'roi':
+      sortedCampaigns = [...spendResultsData.campaigns].sort((a, b) => b.roi - a.roi);
+      break;
+    case 'cost_per_result':
+      sortedCampaigns = [...spendResultsData.campaigns].sort((a, b) => a.costPerResult - b.costPerResult);
+      break;
+    case 'revenue_per_dollar':
+      sortedCampaigns = [...spendResultsData.campaigns].sort((a, b) => b.revenuePerDollar - a.revenuePerDollar);
+      break;
+    default:
+      sortedCampaigns = [...spendResultsData.campaigns].sort((a, b) => b.efficiencyScore - a.efficiencyScore);
+  }
+  
+  res.json({
+    metric,
+    campaigns: sortedCampaigns.map((campaign, index) => ({
+      ...campaign,
+      rank: index + 1,
+      percentile: ((sortedCampaigns.length - index) / sortedCampaigns.length * 100).toFixed(0)
+    }))
+  });
+});
+
+// Track campaign performance update
+app.post('/api/spend-results/update', (req, res) => {
+  const { campaignId, spend, results, conversions, clicks, impressions } = req.body;
+  
+  const campaign = spendResultsData.campaigns.find(c => c.id === campaignId);
+  if (!campaign) {
+    return res.status(404).json({ error: 'Campaign not found' });
+  }
+  
+  // Update metrics
+  if (spend !== undefined) campaign.spend += spend;
+  if (results !== undefined) campaign.results += results;
+  if (conversions !== undefined) campaign.conversions += conversions;
+  if (clicks !== undefined) campaign.clicks += clicks;
+  if (impressions !== undefined) campaign.impressions += impressions;
+  
+  // Recalculate derived metrics
+  campaign.roi = ((campaign.results - campaign.spend) / campaign.spend * 100).toFixed(0);
+  campaign.costPerResult = (campaign.spend / campaign.conversions).toFixed(2);
+  campaign.costPerClick = (campaign.spend / campaign.clicks).toFixed(2);
+  campaign.costPerConversion = campaign.costPerResult;
+  campaign.revenuePerDollar = (campaign.results / campaign.spend).toFixed(2);
+  
+  // Calculate efficiency score (0-10 scale)
+  const roiScore = Math.min(5, campaign.roi / 100 * 5); // ROI component (0-5)
+  const costScore = Math.min(5, (100 - parseFloat(campaign.costPerResult)) / 20); // Cost efficiency (0-5)
+  campaign.efficiencyScore = (roiScore + costScore).toFixed(1);
+  
+  res.json({
+    message: 'Campaign performance updated',
+    campaign,
+    calculatedMetrics: {
+      roi: campaign.roi,
+      costPerResult: campaign.costPerResult,
+      efficiencyScore: campaign.efficiencyScore,
+      revenuePerDollar: campaign.revenuePerDollar
+    }
+  });
+});
+
+// Get performance trends
+app.get('/api/spend-results/trends', (req, res) => {
+  const { period = '7d' } = req.query;
+  const days = period === '30d' ? 30 : 7;
+  
+  // Generate mock trend data
+  const trends = [];
+  for (let i = days - 1; i >= 0; i--) {
+    const date = new Date();
+    date.setDate(date.getDate() - i);
+    
+    const dayData = {
+      date: date.toISOString().split('T')[0],
+      totalSpend: 0,
+      totalResults: 0,
+      campaigns: []
+    };
+    
+    spendResultsData.campaigns.forEach(campaign => {
+      const dailySpend = Math.floor(Math.random() * (campaign.spend / 30)) + 10;
+      const dailyResults = Math.floor(Math.random() * (campaign.results / 30)) + 20;
+      
+      dayData.totalSpend += dailySpend;
+      dayData.totalResults += dailyResults;
+      dayData.campaigns.push({
+        id: campaign.id,
+        name: campaign.name,
+        spend: dailySpend,
+        results: dailyResults,
+        roi: ((dailyResults - dailySpend) / dailySpend * 100).toFixed(1)
+      });
+    });
+    
+    dayData.overallROI = ((dayData.totalResults - dayData.totalSpend) / dayData.totalSpend * 100).toFixed(1);
+    trends.push(dayData);
+  }
+  
+  res.json({
+    period,
+    trends,
+    summary: {
+      avgDailySpend: trends.reduce((sum, day) => sum + day.totalSpend, 0) / trends.length,
+      avgDailyResults: trends.reduce((sum, day) => sum + day.totalResults, 0) / trends.length,
+      avgDailyROI: trends.reduce((sum, day) => sum + parseFloat(day.overallROI), 0) / trends.length
+    }
+  });
+});
+
 // Simulate daily spending updates
 setInterval(() => {
   budgetData.campaigns.forEach(campaign => {
@@ -1507,6 +1769,26 @@ setInterval(() => {
     // Check for alerts
     const alerts = checkBudgetAlerts(campaign);
     budgetData.alerts.push(...alerts);
+  });
+  
+  // Update spend vs results data
+  spendResultsData.campaigns.forEach(campaign => {
+    const spendIncrease = Math.floor(Math.random() * 50) + 10;
+    const resultsIncrease = Math.floor(Math.random() * 100) + 20;
+    
+    campaign.spend += spendIncrease;
+    campaign.results += resultsIncrease;
+    campaign.conversions += Math.floor(Math.random() * 3) + 1;
+    
+    // Recalculate metrics
+    campaign.roi = ((campaign.results - campaign.spend) / campaign.spend * 100).toFixed(0);
+    campaign.costPerResult = (campaign.spend / campaign.conversions).toFixed(2);
+    campaign.revenuePerDollar = (campaign.results / campaign.spend).toFixed(2);
+    
+    // Recalculate efficiency score
+    const roiScore = Math.min(5, campaign.roi / 100 * 5);
+    const costScore = Math.min(5, (100 - parseFloat(campaign.costPerResult)) / 20);
+    campaign.efficiencyScore = (roiScore + costScore).toFixed(1);
   });
   
   // Update total spent

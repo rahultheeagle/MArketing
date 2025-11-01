@@ -760,8 +760,278 @@ app.get('/api/campaign-analysis/:id', (req, res) => {
   res.json(analysis);
 });
 
+// Automated Reports System
+let scheduledReports = [
+  { id: 1, name: 'Weekly Executive Summary', frequency: 'weekly', recipients: ['ceo@company.com'], status: 'active', template: 'executive', nextRun: new Date(Date.now() + 7*24*60*60*1000) },
+  { id: 2, name: 'Daily Performance Snapshot', frequency: 'daily', recipients: ['team@company.com'], status: 'active', template: 'daily', nextRun: new Date(Date.now() + 24*60*60*1000) }
+];
+
+let reportTemplates = {
+  executive: {
+    name: 'Executive Summary',
+    sections: ['overview', 'kpis', 'roi_analysis', 'recommendations'],
+    charts: ['performance_trend', 'channel_comparison'],
+    frequency: ['weekly', 'monthly']
+  },
+  performance: {
+    name: 'Performance Deep Dive',
+    sections: ['detailed_metrics', 'campaign_breakdown', 'trends', 'optimization_tips'],
+    charts: ['daily_performance', 'conversion_funnel', 'channel_performance'],
+    frequency: ['weekly', 'monthly']
+  },
+  roi: {
+    name: 'ROI Analysis',
+    sections: ['revenue_breakdown', 'cost_analysis', 'profit_margins', 'budget_recommendations'],
+    charts: ['roi_trend', 'spend_vs_revenue', 'channel_roi'],
+    frequency: ['monthly', 'quarterly']
+  },
+  daily: {
+    name: 'Daily Snapshot',
+    sections: ['yesterday_summary', 'key_metrics', 'alerts'],
+    charts: ['daily_trend'],
+    frequency: ['daily']
+  }
+};
+
+// Get all scheduled reports
+app.get('/api/reports', (req, res) => {
+  res.json({
+    scheduledReports,
+    templates: reportTemplates,
+    totalReports: scheduledReports.length,
+    activeReports: scheduledReports.filter(r => r.status === 'active').length
+  });
+});
+
+// Create new automated report
+app.post('/api/reports', (req, res) => {
+  const { name, frequency, recipients, template, time } = req.body;
+  
+  const newReport = {
+    id: scheduledReports.length + 1,
+    name,
+    frequency,
+    recipients: Array.isArray(recipients) ? recipients : recipients.split(',').map(r => r.trim()),
+    template,
+    status: 'active',
+    createdAt: new Date().toISOString(),
+    nextRun: calculateNextRun(frequency, time),
+    lastRun: null,
+    runCount: 0
+  };
+  
+  scheduledReports.push(newReport);
+  res.status(201).json(newReport);
+});
+
+// Update report status
+app.put('/api/reports/:id', (req, res) => {
+  const { id } = req.params;
+  const { status, name, frequency, recipients, template } = req.body;
+  
+  const report = scheduledReports.find(r => r.id === parseInt(id));
+  if (!report) {
+    return res.status(404).json({ error: 'Report not found' });
+  }
+  
+  if (status) report.status = status;
+  if (name) report.name = name;
+  if (frequency) report.frequency = frequency;
+  if (recipients) report.recipients = Array.isArray(recipients) ? recipients : recipients.split(',').map(r => r.trim());
+  if (template) report.template = template;
+  
+  res.json(report);
+});
+
+// Delete scheduled report
+app.delete('/api/reports/:id', (req, res) => {
+  const { id } = req.params;
+  const index = scheduledReports.findIndex(r => r.id === parseInt(id));
+  
+  if (index === -1) {
+    return res.status(404).json({ error: 'Report not found' });
+  }
+  
+  scheduledReports.splice(index, 1);
+  res.json({ message: 'Report deleted successfully' });
+});
+
+// Generate report data
+app.get('/api/reports/generate/:template', (req, res) => {
+  const { template } = req.params;
+  const { dateRange = '7d' } = req.query;
+  
+  if (!reportTemplates[template]) {
+    return res.status(404).json({ error: 'Template not found' });
+  }
+  
+  // Generate report data based on template
+  const reportData = generateReportData(template, dateRange);
+  
+  res.json({
+    template: reportTemplates[template],
+    data: reportData,
+    generatedAt: new Date().toISOString(),
+    dateRange
+  });
+});
+
+// Send report via email
+app.post('/api/reports/send', (req, res) => {
+  const { reportId, recipients, subject } = req.body;
+  
+  // Simulate email sending
+  const report = scheduledReports.find(r => r.id === reportId);
+  if (!report) {
+    return res.status(404).json({ error: 'Report not found' });
+  }
+  
+  // Update last run time
+  report.lastRun = new Date().toISOString();
+  report.runCount += 1;
+  report.nextRun = calculateNextRun(report.frequency);
+  
+  res.json({
+    message: 'Report sent successfully',
+    recipients: recipients || report.recipients,
+    subject: subject || `${report.name} - ${new Date().toLocaleDateString()}`,
+    sentAt: new Date().toISOString()
+  });
+});
+
+// Helper function to calculate next run time
+function calculateNextRun(frequency, time = '09:00') {
+  const now = new Date();
+  const nextRun = new Date();
+  
+  switch(frequency) {
+    case 'daily':
+      nextRun.setDate(now.getDate() + 1);
+      break;
+    case 'weekly':
+      nextRun.setDate(now.getDate() + 7);
+      break;
+    case 'monthly':
+      nextRun.setMonth(now.getMonth() + 1);
+      break;
+    case 'quarterly':
+      nextRun.setMonth(now.getMonth() + 3);
+      break;
+  }
+  
+  const [hours, minutes] = time.split(':');
+  nextRun.setHours(parseInt(hours), parseInt(minutes), 0, 0);
+  
+  return nextRun;
+}
+
+// Generate report data based on template
+function generateReportData(template, dateRange) {
+  const baseData = {
+    summary: {
+      totalClicks: Math.floor(Math.random() * 50000) + 10000,
+      totalConversions: Math.floor(Math.random() * 1000) + 200,
+      totalRevenue: Math.floor(Math.random() * 100000) + 20000,
+      avgROI: Math.floor(Math.random() * 200) + 50
+    },
+    campaigns: campaigns.map(campaign => ({
+      name: campaign.name,
+      clicks: campaign.metrics.clicks,
+      conversions: campaign.metrics.conversions,
+      revenue: campaign.metrics.conversions * 50,
+      roi: ((campaign.metrics.conversions * 50 - campaign.budget) / campaign.budget * 100).toFixed(1),
+      grade: campaign.metrics.conversions > 50 ? 'A' : campaign.metrics.conversions > 20 ? 'B' : 'C'
+    })),
+    trends: {
+      daily: Array.from({length: 7}, (_, i) => ({
+        date: new Date(Date.now() - (6-i) * 24*60*60*1000).toISOString().split('T')[0],
+        clicks: Math.floor(Math.random() * 2000) + 500,
+        conversions: Math.floor(Math.random() * 50) + 10,
+        revenue: Math.floor(Math.random() * 5000) + 1000
+      }))
+    }
+  };
+  
+  // Customize data based on template
+  switch(template) {
+    case 'executive':
+      return {
+        ...baseData,
+        insights: [
+          'Email campaigns showing 3x higher ROI than social media',
+          'Mobile traffic converting 25% better than desktop',
+          'Weekend performance 15% above weekday average'
+        ],
+        recommendations: [
+          'Increase email campaign budget by 30%',
+          'Optimize mobile landing pages',
+          'Schedule more campaigns for weekends'
+        ]
+      };
+    case 'performance':
+      return {
+        ...baseData,
+        detailedMetrics: {
+          ctr: '2.8%',
+          conversionRate: '3.2%',
+          costPerClick: '$1.25',
+          costPerConversion: '$38.50'
+        },
+        channelBreakdown: {
+          'Google Ads': { clicks: 15000, conversions: 450, spend: 5000 },
+          'Facebook': { clicks: 12000, conversions: 320, spend: 3500 },
+          'Email': { clicks: 8000, conversions: 280, spend: 500 }
+        }
+      };
+    case 'roi':
+      return {
+        ...baseData,
+        roiAnalysis: {
+          totalSpend: Math.floor(Math.random() * 20000) + 5000,
+          totalRevenue: Math.floor(Math.random() * 50000) + 15000,
+          netProfit: Math.floor(Math.random() * 30000) + 10000,
+          profitMargin: '45%'
+        },
+        budgetRecommendations: [
+          'Reallocate 20% budget from LinkedIn to Email campaigns',
+          'Increase Google Ads budget by $2000/month',
+          'Pause underperforming Instagram campaigns'
+        ]
+      };
+    case 'daily':
+      return {
+        yesterday: {
+          clicks: Math.floor(Math.random() * 2000) + 500,
+          conversions: Math.floor(Math.random() * 50) + 10,
+          revenue: Math.floor(Math.random() * 5000) + 1000,
+          topCampaign: 'Email Newsletter'
+        },
+        alerts: [
+          'Google Ads CTR dropped 15% yesterday',
+          'Email campaign exceeded conversion goal by 25%'
+        ]
+      };
+    default:
+      return baseData;
+  }
+}
+
+// Auto-run scheduled reports (simulate)
+setInterval(() => {
+  const now = new Date();
+  scheduledReports.forEach(report => {
+    if (report.status === 'active' && report.nextRun <= now) {
+      console.log(`Auto-generating report: ${report.name}`);
+      report.lastRun = now.toISOString();
+      report.runCount += 1;
+      report.nextRun = calculateNextRun(report.frequency);
+    }
+  });
+}, 60000); // Check every minute
+
 app.listen(PORT, () => {
   console.log(`Campaign Hub API running on port ${PORT}`);
   console.log(`Real-time Analytics available at http://localhost:${PORT}`);
   console.log(`Performance Scoring available at http://localhost:${PORT}`);
+  console.log(`Automated Reports available at http://localhost:${PORT}`);
 });

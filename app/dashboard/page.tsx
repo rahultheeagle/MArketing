@@ -5,6 +5,7 @@ import MetricsGrid from '@/app/components/MetricsGrid';
 import CampaignChart from '@/app/components/CampaignChart';
 import { store } from '@/lib/store';
 
+// Updated: 2024-01-15 - Real-time Dashboard
 export default function DashboardPage() {
   const [lastUpdated, setLastUpdated] = useState(new Date());
   const [activities, setActivities] = useState([

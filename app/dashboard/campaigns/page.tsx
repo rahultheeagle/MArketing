@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { store, Campaign } from '@/lib/store';
 
+// Updated: 2024-01-15 - Full CRUD System
 export default function CampaignsPage() {
   const [campaigns, setCampaigns] = useState(store.getCampaigns());
   const [lastUpdated, setLastUpdated] = useState(new Date());

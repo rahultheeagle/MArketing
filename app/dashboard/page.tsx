@@ -78,13 +78,7 @@ export default function DashboardPage() {
   return (
     <div className="space-y-6">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-        <h1 className="text-2xl md:text-3xl font-bold text-gray-800">Dashboard - {new Date().getSeconds()}s</h1>
-        <div className="flex items-center space-x-2">
-          <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-          <div className="text-sm text-gray-500">
-            Last updated: {lastUpdated.toLocaleTimeString()}
-          </div>
-        </div>
+        <h1 className="text-2xl md:text-3xl font-bold text-gray-800">Dashboard</h1>
       </div>
 
       <MetricsGrid 

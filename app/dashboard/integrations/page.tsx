@@ -72,14 +72,18 @@ export default function IntegrationsPage() {
                 </div>
               </div>
               <button
-                onClick={() => handleConnect(integration.id)}
+                onClick={() => {
+                  handleConnect(integration.id);
+                  const isConnecting = !connections[integration.id as keyof typeof connections];
+                  alert(isConnecting ? `✅ ${integration.name} connected successfully!` : `❌ ${integration.name} disconnected!`);
+                }}
                 className={`px-4 py-2 rounded text-sm font-medium transition-colors ${
                   connections[integration.id as keyof typeof connections]
                     ? 'bg-green-600 text-white hover:bg-green-700'
                     : 'bg-blue-600 text-white hover:bg-blue-700'
                 }`}
               >
-                {connections[integration.id as keyof typeof connections] ? 'Connected' : 'Connect'}
+                {connections[integration.id as keyof typeof connections] ? '✓ Connected' : '🔗 Connect'}
               </button>
             </div>
             

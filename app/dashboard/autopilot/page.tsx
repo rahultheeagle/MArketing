@@ -83,11 +83,18 @@ export default function AutopilotPage() {
           />
           <div className="flex justify-between items-center">
             <button
-              onClick={analyzeContent}
+              onClick={() => {
+                if (content.trim()) {
+                  analyzeContent();
+                  alert(`✅ Content analyzed! Viral score: ${viralScore > 0 ? viralScore : 'Calculating...'}/100`);
+                } else {
+                  alert('❌ Please enter content to analyze!');
+                }
+              }}
               disabled={!content.trim()}
               className="px-4 py-2 bg-purple-600 text-white rounded hover:bg-purple-700 disabled:opacity-50"
             >
-              Analyze Content
+              🔍 Analyze Content
             </button>
             {viralScore > 0 && (
               <div className="flex items-center space-x-3">

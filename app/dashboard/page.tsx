@@ -98,10 +98,19 @@ export default function DashboardPage() {
             <h2 className="text-lg md:text-xl font-semibold">Campaign Performance</h2>
             <div className="flex gap-2">
               <button 
-                onClick={() => alert('Exporting chart data...')}
+                onClick={() => {
+                  const csvData = dashboardData.timeSeries.map(d => `${d.date},${d.clicks}`).join('\n');
+                  const blob = new Blob([`Date,Clicks\n${csvData}`], { type: 'text/csv' });
+                  const url = URL.createObjectURL(blob);
+                  const a = document.createElement('a');
+                  a.href = url;
+                  a.download = 'campaign-data.csv';
+                  a.click();
+                  alert('✅ Campaign data exported as CSV!');
+                }}
                 className="bg-green-600 text-white px-3 py-1 rounded text-sm hover:bg-green-700 cursor-pointer"
               >
-                Export
+                📄 Export
               </button>
               <button 
                 onClick={() => alert('Opening detailed view...')}
@@ -118,10 +127,14 @@ export default function DashboardPage() {
           <div className="flex justify-between items-center mb-4">
             <h2 className="text-lg md:text-xl font-semibold">Recent Activity</h2>
             <button 
-              onClick={() => alert('Refreshing activity feed...')}
+              onClick={() => {
+                store.updateCampaignClicks();
+                setLastUpdated(new Date());
+                alert('✅ Data refreshed successfully!');
+              }}
               className="bg-blue-600 text-white px-3 py-1 rounded text-sm hover:bg-blue-700 cursor-pointer"
             >
-              Refresh
+              🔄 Refresh
             </button>
           </div>
           <div className="space-y-3">

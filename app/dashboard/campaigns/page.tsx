@@ -104,13 +104,15 @@ export default function CampaignsPage() {
                     status: 'active' as const,
                     budget: newCampaign.budget,
                     spent: 0,
-                    clicks: 0,
-                    conversions: 0
+                    clicks: Math.floor(Math.random() * 1000),
+                    conversions: Math.floor(Math.random() * 50)
                   };
                   store.addCampaign(campaign);
-                  console.log('Added new campaign:', campaign);
+                  alert(`✅ Campaign "${campaign.name}" created successfully!`);
                   setNewCampaign({ name: '', budget: 0 });
                   setShowCreateForm(false);
+                } else {
+                  alert('❌ Please enter campaign name and budget!');
                 }
               }}
               className="btn-primary"

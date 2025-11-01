@@ -40,8 +40,6 @@ export default function MetricsGrid({ campaigns, clicks }: MetricsGridProps) {
     }
   ];
 
-  console.log('MetricsGrid received:', { campaigns, clicks, renderKey });
-  
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6" key={renderKey}>
       {metrics.map((metric, index) => (

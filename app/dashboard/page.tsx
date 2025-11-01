@@ -23,7 +23,7 @@ export default function DashboardPage() {
       // Update activity times
       setActivities(prev => prev.map(activity => ({
         ...activity,
-        time: activity.time + 0.033 // Increment by 2 seconds
+        time: activity.time + 0.017 // Increment by 1 second
       })));
       
       setUpdateCounter(prev => prev + 1);
@@ -53,7 +53,7 @@ export default function DashboardPage() {
           ...prev.slice(0, 2)
         ]);
       }
-    }, 2000);
+    }, 1000);
 
     return () => clearInterval(interval);
   }, []);
@@ -77,7 +77,7 @@ export default function DashboardPage() {
   return (
     <div className="space-y-6">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-        <h1 className="text-2xl md:text-3xl font-bold text-gray-800">Dashboard</h1>
+        <h1 className="text-2xl md:text-3xl font-bold text-gray-800">Dashboard - {new Date().getSeconds()}s</h1>
         <div className="flex items-center space-x-2">
           <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
           <div className="text-sm text-gray-500">
@@ -104,7 +104,7 @@ export default function DashboardPage() {
             {activities.map((activity) => (
               <div key={activity.id} className="flex flex-col md:flex-row justify-between items-start md:items-center p-3 bg-gray-50 rounded gap-1 transition-all">
                 <span>{activity.text}</span>
-                <span className="text-sm text-gray-500">{formatTime(activity.time)} ({updateCounter})</span>
+                <span className="text-sm text-gray-500">{formatTime(activity.time)}</span>
               </div>
             ))}
           </div>

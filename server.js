@@ -1801,10 +1801,474 @@ setInterval(() => {
   
 }, 300000); // Update every 5 minutes
 
+// A/B Test Management System
+let abTests = [
+  {
+    id: 1,
+    name: 'Email Subject Line Test',
+    campaign: 'Email Newsletter',
+    type: 'subject-line',
+    status: 'running',
+    startDate: '2024-01-01',
+    endDate: '2024-01-15',
+    duration: 14,
+    trafficSplit: 50,
+    confidenceLevel: 95,
+    variants: [
+      {
+        id: 'control',
+        name: 'Control',
+        content: 'Get 50% Off This Weekend Only!',
+        visitors: 2450,
+        conversions: 147,
+        conversionRate: 6.0,
+        confidence: 95,
+        isControl: true
+      },
+      {
+        id: 'variant-b',
+        name: 'Variant B',
+        content: 'Limited Time: Save 50% Today!',
+        visitors: 2380,
+        conversions: 190,
+        conversionRate: 8.0,
+        confidence: 98,
+        isControl: false
+      }
+    ],
+    winner: null,
+    statisticalSignificance: {
+      isSignificant: true,
+      pValue: 0.0234,
+      confidence: 98,
+      recommendation: 'Implement Variant B'
+    }
+  },
+  {
+    id: 2,
+    name: 'Google Ads Creative Test',
+    campaign: 'Google Ads',
+    type: 'ad-creative',
+    status: 'completed',
+    startDate: '2023-12-15',
+    endDate: '2024-01-05',
+    duration: 21,
+    trafficSplit: 50,
+    confidenceLevel: 95,
+    variants: [
+      {
+        id: 'control',
+        name: 'Control',
+        content: 'Buy Now - Free Shipping',
+        visitors: 5200,
+        conversions: 312,
+        conversionRate: 6.0,
+        confidence: 99,
+        isControl: true
+      },
+      {
+        id: 'variant-b',
+        name: 'Variant B',
+        content: 'Shop Today - Free Delivery',
+        visitors: 5150,
+        conversions: 268,
+        conversionRate: 5.2,
+        confidence: 85,
+        isControl: false
+      }
+    ],
+    winner: 'control',
+    statisticalSignificance: {
+      isSignificant: true,
+      pValue: 0.0156,
+      confidence: 99,
+      recommendation: 'Keep Control version'
+    }
+  }
+];
+
+// Get all A/B tests
+app.get('/api/ab-tests', (req, res) => {
+  const { status, campaign } = req.query;
+  
+  let filteredTests = abTests;
+  
+  if (status) {
+    filteredTests = filteredTests.filter(test => test.status === status);
+  }
+  
+  if (campaign) {
+    filteredTests = filteredTests.filter(test => test.campaign === campaign);
+  }
+  
+  const summary = {
+    totalTests: abTests.length,
+    runningTests: abTests.filter(t => t.status === 'running').length,
+    completedTests: abTests.filter(t => t.status === 'completed').length,
+    pausedTests: abTests.filter(t => t.status === 'paused').length,
+    significantResults: abTests.filter(t => t.statisticalSignificance?.isSignificant).length
+  };
+  
+  res.json({
+    tests: filteredTests,
+    summary
+  });
+});
+
+// Create new A/B test
+app.post('/api/ab-tests', (req, res) => {
+  const { name, campaign, type, trafficSplit, duration, confidenceLevel, variants } = req.body;
+  
+  const newTest = {
+    id: abTests.length + 1,
+    name,
+    campaign,
+    type,
+    status: 'running',
+    startDate: new Date().toISOString().split('T')[0],
+    endDate: new Date(Date.now() + duration * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+    duration,
+    trafficSplit: trafficSplit || 50,
+    confidenceLevel: confidenceLevel || 95,
+    variants: variants.map((variant, index) => ({
+      id: index === 0 ? 'control' : `variant-${String.fromCharCode(97 + index)}`,
+      name: index === 0 ? 'Control' : `Variant ${String.fromCharCode(65 + index)}`,
+      content: variant.content,
+      visitors: 0,
+      conversions: 0,
+      conversionRate: 0,
+      confidence: 0,
+      isControl: index === 0
+    })),
+    winner: null,
+    statisticalSignificance: null
+  };
+  
+  abTests.unshift(newTest);
+  res.status(201).json(newTest);
+});
+
+// Update A/B test
+app.put('/api/ab-tests/:id', (req, res) => {
+  const { id } = req.params;
+  const updates = req.body;
+  
+  const test = abTests.find(t => t.id === parseInt(id));
+  if (!test) {
+    return res.status(404).json({ error: 'Test not found' });
+  }
+  
+  Object.keys(updates).forEach(key => {
+    if (updates[key] !== undefined) {
+      test[key] = updates[key];
+    }
+  });
+  
+  // Recalculate statistical significance if test data updated
+  if (updates.variants) {
+    test.statisticalSignificance = calculateStatisticalSignificance(test);
+    test.winner = determineWinner(test);
+  }
+  
+  res.json(test);
+});
+
+// Get specific A/B test results
+app.get('/api/ab-tests/:id/results', (req, res) => {
+  const { id } = req.params;
+  const test = abTests.find(t => t.id === parseInt(id));
+  
+  if (!test) {
+    return res.status(404).json({ error: 'Test not found' });
+  }
+  
+  // Generate trend data for visualization
+  const trendData = generateTestTrendData(test);
+  
+  // Calculate additional metrics
+  const totalVisitors = test.variants.reduce((sum, v) => sum + v.visitors, 0);
+  const totalConversions = test.variants.reduce((sum, v) => sum + v.conversions, 0);
+  const overallConversionRate = totalVisitors > 0 ? (totalConversions / totalVisitors * 100).toFixed(2) : 0;
+  
+  res.json({
+    test,
+    metrics: {
+      totalVisitors,
+      totalConversions,
+      overallConversionRate,
+      daysRunning: Math.floor((new Date() - new Date(test.startDate)) / (1000 * 60 * 60 * 24)),
+      isComplete: test.status === 'completed'
+    },
+    trendData,
+    statisticalSignificance: test.statisticalSignificance,
+    winner: test.winner,
+    recommendations: generateTestRecommendations(test)
+  });
+});
+
+// Update test variant data
+app.post('/api/ab-tests/:id/variants/:variantId/data', (req, res) => {
+  const { id, variantId } = req.params;
+  const { visitors, conversions } = req.body;
+  
+  const test = abTests.find(t => t.id === parseInt(id));
+  if (!test) {
+    return res.status(404).json({ error: 'Test not found' });
+  }
+  
+  const variant = test.variants.find(v => v.id === variantId);
+  if (!variant) {
+    return res.status(404).json({ error: 'Variant not found' });
+  }
+  
+  // Update variant data
+  if (visitors !== undefined) variant.visitors += visitors;
+  if (conversions !== undefined) variant.conversions += conversions;
+  
+  // Recalculate conversion rate
+  variant.conversionRate = variant.visitors > 0 ? 
+    ((variant.conversions / variant.visitors) * 100).toFixed(2) : 0;
+  
+  // Update confidence based on sample size
+  variant.confidence = calculateVariantConfidence(variant);
+  
+  // Recalculate test-level statistics
+  test.statisticalSignificance = calculateStatisticalSignificance(test);
+  test.winner = determineWinner(test);
+  
+  res.json({
+    variant,
+    test: {
+      id: test.id,
+      statisticalSignificance: test.statisticalSignificance,
+      winner: test.winner
+    }
+  });
+});
+
+// Pause/Resume test
+app.post('/api/ab-tests/:id/toggle', (req, res) => {
+  const { id } = req.params;
+  const test = abTests.find(t => t.id === parseInt(id));
+  
+  if (!test) {
+    return res.status(404).json({ error: 'Test not found' });
+  }
+  
+  test.status = test.status === 'paused' ? 'running' : 'paused';
+  
+  res.json({
+    message: `Test ${test.status === 'paused' ? 'paused' : 'resumed'} successfully`,
+    test
+  });
+});
+
+// Stop test
+app.post('/api/ab-tests/:id/stop', (req, res) => {
+  const { id } = req.params;
+  const test = abTests.find(t => t.id === parseInt(id));
+  
+  if (!test) {
+    return res.status(404).json({ error: 'Test not found' });
+  }
+  
+  test.status = 'completed';
+  test.endDate = new Date().toISOString().split('T')[0];
+  test.winner = determineWinner(test);
+  
+  res.json({
+    message: 'Test stopped successfully',
+    test,
+    finalResults: {
+      winner: test.winner,
+      statisticalSignificance: test.statisticalSignificance,
+      recommendations: generateTestRecommendations(test)
+    }
+  });
+});
+
+// Helper functions
+function calculateStatisticalSignificance(test) {
+  if (test.variants.length < 2) return null;
+  
+  const [control, variant] = test.variants;
+  const controlRate = control.conversionRate / 100;
+  const variantRate = variant.conversionRate / 100;
+  
+  if (control.visitors < 100 || variant.visitors < 100) {
+    return {
+      isSignificant: false,
+      pValue: 1.0,
+      confidence: 0,
+      recommendation: 'Need more data - continue testing'
+    };
+  }
+  
+  // Simplified statistical significance calculation
+  const pooledRate = (control.conversions + variant.conversions) / (control.visitors + variant.visitors);
+  const standardError = Math.sqrt(pooledRate * (1 - pooledRate) * (1/control.visitors + 1/variant.visitors));
+  const zScore = Math.abs(controlRate - variantRate) / standardError;
+  const pValue = Math.max(0.001, 2 * (1 - normalCDF(Math.abs(zScore))));
+  
+  const isSignificant = pValue < 0.05; // 95% confidence
+  const confidence = Math.min(99, Math.max(50, (1 - pValue) * 100));
+  
+  let recommendation;
+  if (isSignificant && variantRate > controlRate) {
+    recommendation = `Implement ${variant.name} - ${((variantRate - controlRate) / controlRate * 100).toFixed(1)}% improvement`;
+  } else if (isSignificant && controlRate > variantRate) {
+    recommendation = 'Keep Control version - performs better';
+  } else {
+    recommendation = 'Continue testing - results not conclusive yet';
+  }
+  
+  return {
+    isSignificant,
+    pValue: pValue.toFixed(4),
+    confidence: confidence.toFixed(0),
+    zScore: zScore.toFixed(2),
+    recommendation
+  };
+}
+
+function determineWinner(test) {
+  const significance = test.statisticalSignificance;
+  if (!significance || !significance.isSignificant) return null;
+  
+  return test.variants.reduce((prev, current) => 
+    prev.conversionRate > current.conversionRate ? prev : current
+  ).id;
+}
+
+function calculateVariantConfidence(variant) {
+  if (variant.visitors < 100) return Math.min(50, variant.visitors / 2);
+  if (variant.visitors < 1000) return Math.min(80, 50 + (variant.visitors - 100) / 20);
+  return Math.min(99, 80 + (variant.visitors - 1000) / 100);
+}
+
+function generateTestTrendData(test) {
+  const days = Math.min(14, Math.floor((new Date() - new Date(test.startDate)) / (1000 * 60 * 60 * 24)) + 1);
+  const trendData = [];
+  
+  for (let day = 1; day <= days; day++) {
+    const date = new Date(test.startDate);
+    date.setDate(date.getDate() + day - 1);
+    
+    const dayData = {
+      date: date.toISOString().split('T')[0],
+      day: `Day ${day}`,
+      variants: test.variants.map(variant => {
+        const progress = day / days;
+        const variance = (Math.random() - 0.5) * 2;
+        const rate = Math.max(0, variant.conversionRate * progress + variance);
+        
+        return {
+          id: variant.id,
+          name: variant.name,
+          conversionRate: parseFloat(rate.toFixed(2)),
+          visitors: Math.floor(variant.visitors * progress),
+          conversions: Math.floor(variant.conversions * progress)
+        };
+      })
+    };
+    
+    trendData.push(dayData);
+  }
+  
+  return trendData;
+}
+
+function generateTestRecommendations(test) {
+  const recommendations = [];
+  const significance = test.statisticalSignificance;
+  
+  if (!significance) {
+    recommendations.push({
+      type: 'data',
+      priority: 'high',
+      message: 'Collect more data before making decisions',
+      action: 'Continue running the test'
+    });
+    return recommendations;
+  }
+  
+  if (significance.isSignificant) {
+    const winner = test.variants.find(v => v.id === test.winner);
+    if (winner && !winner.isControl) {
+      recommendations.push({
+        type: 'implement',
+        priority: 'high',
+        message: `Implement ${winner.name} - shows significant improvement`,
+        action: 'Roll out winning variant to all traffic'
+      });
+    } else {
+      recommendations.push({
+        type: 'keep_control',
+        priority: 'medium',
+        message: 'Control version performs better - keep current approach',
+        action: 'Maintain existing campaign'
+      });
+    }
+  } else {
+    recommendations.push({
+      type: 'continue',
+      priority: 'medium',
+      message: 'Results not statistically significant yet',
+      action: 'Continue testing or try different variants'
+    });
+  }
+  
+  return recommendations;
+}
+
+function normalCDF(x) {
+  return 0.5 * (1 + erf(x / Math.sqrt(2)));
+}
+
+function erf(x) {
+  const a1 =  0.254829592;
+  const a2 = -0.284496736;
+  const a3 =  1.421413741;
+  const a4 = -1.453152027;
+  const a5 =  1.061405429;
+  const p  =  0.3275911;
+  
+  const sign = x >= 0 ? 1 : -1;
+  x = Math.abs(x);
+  
+  const t = 1.0 / (1.0 + p * x);
+  const y = 1.0 - (((((a5 * t + a4) * t) + a3) * t + a2) * t + a1) * t * Math.exp(-x * x);
+  
+  return sign * y;
+}
+
+// Simulate real-time A/B test updates
+setInterval(() => {
+  abTests.forEach(test => {
+    if (test.status === 'running') {
+      test.variants.forEach(variant => {
+        // Simulate traffic and conversions
+        const visitorIncrease = Math.floor(Math.random() * 30) + 5;
+        const conversionIncrease = Math.floor(Math.random() * 3);
+        
+        variant.visitors += visitorIncrease;
+        variant.conversions += conversionIncrease;
+        variant.conversionRate = ((variant.conversions / variant.visitors) * 100).toFixed(2);
+        variant.confidence = calculateVariantConfidence(variant);
+      });
+      
+      // Recalculate test statistics
+      test.statisticalSignificance = calculateStatisticalSignificance(test);
+      test.winner = determineWinner(test);
+    }
+  });
+}, 60000); // Update every minute
+
 app.listen(PORT, () => {
   console.log(`Campaign Hub API running on port ${PORT}`);
   console.log(`Real-time Analytics available at http://localhost:${PORT}`);
   console.log(`Performance Scoring available at http://localhost:${PORT}`);
   console.log(`Automated Reports available at http://localhost:${PORT}`);
   console.log(`Budget Tracker available at http://localhost:${PORT}`);
+  console.log(`A/B Test Manager available at http://localhost:${PORT}`);
 });

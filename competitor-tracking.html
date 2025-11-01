@@ -36,6 +36,13 @@
         .insights-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 15px; }
         .insight-card { background: #f0f9ff; border: 1px solid #0ea5e9; padding: 15px; border-radius: 4px; }
         .insight-title { font-weight: bold; color: #0ea5e9; margin-bottom: 5px; }
+        .campaign-card { background: white; padding: 15px; border-radius: 8px; border-left: 4px solid #06b6d4; }
+        .campaign-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+        .campaign-name { font-weight: bold; color: #1f2937; }
+        .campaign-channel { background: #e5e7eb; padding: 2px 8px; border-radius: 12px; font-size: 12px; }
+        .campaign-metrics { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin: 10px 0; }
+        .campaign-metric { text-align: center; }
+        .metric-number { font-weight: bold; color: #06b6d4; }
     </style>
 </head>
 <body>
@@ -111,9 +118,17 @@
         <div class="competitors-grid" id="competitorsGrid"></div>
 
         <div class="analysis-section">
-            <h2>Competitive Analysis</h2>
+            <h2>Public Campaign Monitoring</h2>
+            <div id="campaignsGrid" class="competitors-grid"></div>
+        </div>
+
+        <div class="analysis-section">
+            <h2>Metrics Comparison</h2>
             <div class="chart-container">
                 <canvas id="competitorChart"></canvas>
+            </div>
+            <div class="chart-container">
+                <canvas id="campaignChart"></canvas>
             </div>
             
             <div class="insights-grid" id="insightsGrid"></div>
@@ -169,11 +184,14 @@
         ];
 
         let competitorChart;
+        let campaignChart;
 
         document.addEventListener('DOMContentLoaded', () => {
             setupCompetitorForm();
             displayCompetitors();
+            displayPublicCampaigns();
             initializeCompetitorChart();
+            initializeCampaignChart();
             generateInsights();
             startRealTimeUpdates();
         });
@@ -213,7 +231,9 @@
 
             competitors.push(newCompetitor);
             displayCompetitors();
+            displayPublicCampaigns();
             updateCompetitorChart();
+            updateCampaignChart();
             generateInsights();
             
             document.getElementById('competitorForm').reset();
@@ -305,6 +325,114 @@
             competitorChart.update();
         }
 
+        function displayPublicCampaigns() {
+            const campaigns = [];
+            competitors.forEach(competitor => {
+                competitor.campaigns = competitor.campaigns || [
+                    {
+                        name: `${competitor.name} Q1 Campaign`,
+                        channel: competitor.channels[0] || 'google-ads',
+                        spend: Math.floor(Math.random() * 20000) + 5000,
+                        impressions: Math.floor(Math.random() * 500000) + 100000,
+                        clicks: Math.floor(Math.random() * 15000) + 3000,
+                        conversions: Math.floor(Math.random() * 500) + 100,
+                        ctr: ((Math.random() * 3) + 1).toFixed(2),
+                        cpc: ((Math.random() * 2) + 0.5).toFixed(2),
+                        status: 'active'
+                    },
+                    {
+                        name: `${competitor.name} Brand Campaign`,
+                        channel: competitor.channels[1] || 'facebook',
+                        spend: Math.floor(Math.random() * 15000) + 3000,
+                        impressions: Math.floor(Math.random() * 300000) + 80000,
+                        clicks: Math.floor(Math.random() * 10000) + 2000,
+                        conversions: Math.floor(Math.random() * 300) + 50,
+                        ctr: ((Math.random() * 2.5) + 0.8).toFixed(2),
+                        cpc: ((Math.random() * 1.5) + 0.3).toFixed(2),
+                        status: 'active'
+                    }
+                ];
+                campaigns.push(...competitor.campaigns.map(c => ({...c, competitor: competitor.name})));
+            });
+
+            document.getElementById('campaignsGrid').innerHTML = campaigns.map(campaign => `
+                <div class="campaign-card">
+                    <div class="campaign-header">
+                        <div class="campaign-name">${campaign.name}</div>
+                        <div class="campaign-channel">${campaign.channel}</div>
+                    </div>
+                    <div style="font-size: 12px; color: #6b7280; margin-bottom: 10px;">${campaign.competitor}</div>
+                    <div class="campaign-metrics">
+                        <div class="campaign-metric">
+                            <div class="metric-number">$${(campaign.spend/1000).toFixed(0)}K</div>
+                            <div style="font-size: 11px;">Spend</div>
+                        </div>
+                        <div class="campaign-metric">
+                            <div class="metric-number">${(campaign.impressions/1000).toFixed(0)}K</div>
+                            <div style="font-size: 11px;">Impressions</div>
+                        </div>
+                        <div class="campaign-metric">
+                            <div class="metric-number">${campaign.ctr}%</div>
+                            <div style="font-size: 11px;">CTR</div>
+                        </div>
+                        <div class="campaign-metric">
+                            <div class="metric-number">$${campaign.cpc}</div>
+                            <div style="font-size: 11px;">CPC</div>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function initializeCampaignChart() {
+            const ctx = document.getElementById('campaignChart').getContext('2d');
+            const campaigns = [];
+            competitors.forEach(c => {
+                if (c.campaigns) campaigns.push(...c.campaigns.map(camp => ({...camp, competitor: c.name})));
+            });
+            
+            campaignChart = new Chart(ctx, {
+                type: 'scatter',
+                data: {
+                    datasets: [{
+                        label: 'Campaign Performance',
+                        data: campaigns.map(c => ({x: parseFloat(c.ctr), y: c.conversions, label: c.name})),
+                        backgroundColor: 'rgba(6, 182, 212, 0.6)',
+                        borderColor: '#06b6d4'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        title: { display: true, text: 'Campaign CTR vs Conversions' },
+                        tooltip: {
+                            callbacks: {
+                                label: (context) => {
+                                    const campaign = campaigns[context.dataIndex];
+                                    return `${campaign.name}: CTR ${campaign.ctr}%, ${campaign.conversions} conversions`;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: { title: { display: true, text: 'CTR (%)' } },
+                        y: { title: { display: true, text: 'Conversions' } }
+                    }
+                }
+            });
+        }
+
+        function updateCampaignChart() {
+            const campaigns = [];
+            competitors.forEach(c => {
+                if (c.campaigns) campaigns.push(...c.campaigns.map(camp => ({...camp, competitor: c.name})));
+            });
+            
+            campaignChart.data.datasets[0].data = campaigns.map(c => ({x: parseFloat(c.ctr), y: c.conversions, label: c.name}));
+            campaignChart.update();
+        }
+
         function generateInsights() {
             const insights = [];
             
@@ -365,7 +493,9 @@
             if (confirm('Are you sure you want to stop tracking this competitor?')) {
                 competitors = competitors.filter(c => c.id !== competitorId);
                 displayCompetitors();
+                displayPublicCampaigns();
                 updateCompetitorChart();
+                updateCampaignChart();
                 generateInsights();
             }
         }
@@ -397,7 +527,9 @@
                 });
                 
                 displayCompetitors();
+                displayPublicCampaigns();
                 updateCompetitorChart();
+                updateCampaignChart();
                 generateInsights();
             }, 60000); // Update every minute
         }

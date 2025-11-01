@@ -2474,6 +2474,61 @@ app.delete('/api/competitors/:id', (req, res) => {
   res.json({ message: 'Competitor removed successfully' });
 });
 
+// Get competitor public campaigns
+app.get('/api/competitors/:id/campaigns', (req, res) => {
+  const { id } = req.params;
+  const competitor = competitors.find(c => c.id === parseInt(id));
+  
+  if (!competitor) {
+    return res.status(404).json({ error: 'Competitor not found' });
+  }
+  
+  if (!competitor.campaigns) {
+    competitor.campaigns = [
+      {
+        name: `${competitor.name} Campaign`,
+        channel: competitor.channels[0] || 'google-ads',
+        spend: Math.floor(Math.random() * 20000) + 5000,
+        impressions: Math.floor(Math.random() * 500000) + 100000,
+        clicks: Math.floor(Math.random() * 15000) + 3000,
+        conversions: Math.floor(Math.random() * 500) + 100,
+        ctr: ((Math.random() * 3) + 1).toFixed(2),
+        cpc: ((Math.random() * 2) + 0.5).toFixed(2),
+        status: 'active'
+      }
+    ];
+  }
+  
+  res.json({ competitor: competitor.name, campaigns: competitor.campaigns });
+});
+
+// Get all public campaigns comparison
+app.get('/api/competitors/campaigns/compare', (req, res) => {
+  const allCampaigns = [];
+  
+  competitors.forEach(competitor => {
+    if (!competitor.campaigns) {
+      competitor.campaigns = [
+        {
+          name: `${competitor.name} Campaign`,
+          channel: competitor.channels[0] || 'google-ads',
+          spend: Math.floor(Math.random() * 20000) + 5000,
+          clicks: Math.floor(Math.random() * 15000) + 3000,
+          conversions: Math.floor(Math.random() * 500) + 100,
+          ctr: ((Math.random() * 3) + 1).toFixed(2),
+          cpc: ((Math.random() * 2) + 0.5).toFixed(2)
+        }
+      ];
+    }
+    
+    competitor.campaigns.forEach(campaign => {
+      allCampaigns.push({ ...campaign, competitorName: competitor.name });
+    });
+  });
+  
+  res.json({ campaigns: allCampaigns.sort((a, b) => parseFloat(b.ctr) - parseFloat(a.ctr)) });
+});
+
 // Get competitor analysis
 app.get('/api/competitors/analysis', (req, res) => {
   const totalSpend = competitors.reduce((sum, c) => sum + c.metrics.adSpend, 0);
@@ -2564,6 +2619,14 @@ setInterval(() => {
       competitor.trends.adSpend = (Math.random() > 0.5 ? '+' : '-') + Math.floor(Math.random() * 20) + '%';
       competitor.trends.traffic = (Math.random() > 0.5 ? '+' : '-') + Math.floor(Math.random() * 15) + '%';
       competitor.trends.engagement = (Math.random() > 0.5 ? '+' : '-') + Math.floor(Math.random() * 25) + '%';
+      
+      // Update campaign metrics
+      if (competitor.campaigns) {
+        competitor.campaigns.forEach(campaign => {
+          campaign.ctr = ((Math.random() * 3) + 1).toFixed(2);
+          campaign.cpc = ((Math.random() * 2) + 0.5).toFixed(2);
+        });
+      }
     }
   });
 }, 300000); // Update every 5 minutes
@@ -2576,4 +2639,5 @@ app.listen(PORT, () => {
   console.log(`Budget Tracker available at http://localhost:${PORT}`);
   console.log(`A/B Test Manager available at http://localhost:${PORT}`);
   console.log(`Competitor Tracking available at http://localhost:${PORT}`);
+  console.log(`Public Campaign Monitoring available at http://localhost:${PORT}`);
 });

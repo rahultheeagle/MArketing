@@ -119,17 +119,19 @@ export default function PricingPage() {
             </ul>
 
             <button
-              onClick={() => setCurrentPlan(plan.id)}
-              className={`w-full py-2 px-4 rounded font-medium transition-colors ${
+              onClick={() => {
+                alert(`Selected ${plan.name} plan for ₹${plan.price}/${plan.period}!`);
+                setCurrentPlan(plan.id);
+              }}
+              className={`w-full py-2 px-4 rounded font-medium transition-all transform hover:scale-105 active:scale-95 ${
                 currentPlan === plan.id
-                  ? 'bg-gray-300 text-gray-600 cursor-not-allowed'
+                  ? 'bg-green-500 text-white'
                   : plan.popular
-                  ? 'bg-blue-600 text-white hover:bg-blue-700 shadow-sm'
-                  : 'bg-gray-900 text-white hover:bg-gray-800 shadow-sm'
+                  ? 'bg-blue-600 text-white hover:bg-blue-700 shadow-lg hover:shadow-xl'
+                  : 'bg-gray-900 text-white hover:bg-gray-800 shadow-lg hover:shadow-xl'
               }`}
-              disabled={currentPlan === plan.id}
             >
-              {currentPlan === plan.id ? 'Current Plan' : 'Choose Plan'}
+              {currentPlan === plan.id ? '✓ Current Plan' : 'Choose Plan'}
             </button>
           </div>
         ))}

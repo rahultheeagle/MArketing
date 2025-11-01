@@ -43,7 +43,11 @@ export default function MetricsGrid({ campaigns, clicks }: MetricsGridProps) {
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6" key={renderKey}>
       {metrics.map((metric, index) => (
-        <div key={`${metric.title}-${metric.value}`} className="metric-card">
+        <div 
+          key={`${metric.title}-${metric.value}`} 
+          className="metric-card hover:shadow-lg transition-shadow cursor-pointer"
+          onClick={() => alert(`Opening ${metric.title} details...`)}
+        >
           <h3 className="text-sm font-medium text-gray-500 mb-2">{metric.title}</h3>
           <div className={`text-2xl font-bold ${metric.color} mb-1`}>
             {metric.value}

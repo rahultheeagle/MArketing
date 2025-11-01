@@ -94,12 +94,36 @@ export default function DashboardPage() {
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6">
         <div className="card">
-          <h2 className="text-lg md:text-xl font-semibold mb-4">Campaign Performance</h2>
+          <div className="flex justify-between items-center mb-4">
+            <h2 className="text-lg md:text-xl font-semibold">Campaign Performance</h2>
+            <div className="flex gap-2">
+              <button 
+                onClick={() => alert('Exporting chart data...')}
+                className="bg-green-600 text-white px-3 py-1 rounded text-sm hover:bg-green-700 cursor-pointer"
+              >
+                Export
+              </button>
+              <button 
+                onClick={() => alert('Opening detailed view...')}
+                className="bg-gray-600 text-white px-3 py-1 rounded text-sm hover:bg-gray-700 cursor-pointer"
+              >
+                Details
+              </button>
+            </div>
+          </div>
           <CampaignChart data={dashboardData.timeSeries} />
         </div>
         
         <div className="card">
-          <h2 className="text-lg md:text-xl font-semibold mb-4">Recent Activity</h2>
+          <div className="flex justify-between items-center mb-4">
+            <h2 className="text-lg md:text-xl font-semibold">Recent Activity</h2>
+            <button 
+              onClick={() => alert('Refreshing activity feed...')}
+              className="bg-blue-600 text-white px-3 py-1 rounded text-sm hover:bg-blue-700 cursor-pointer"
+            >
+              Refresh
+            </button>
+          </div>
           <div className="space-y-3">
             {activities.map((activity) => (
               <div key={activity.id} className="flex flex-col md:flex-row justify-between items-start md:items-center p-3 bg-gray-50 rounded gap-1 transition-all">

@@ -20,14 +20,14 @@ export default function RootLayout({
               CampaignPulse
             </a>
             <div className="flex flex-wrap gap-2 md:gap-4">
-              <a href="/dashboard" className="px-3 py-1 rounded-md hover:bg-gray-800 hover:text-blue-400 transition-colors">Dashboard</a>
-              <a href="/dashboard/competitors" className="px-3 py-1 rounded-md hover:bg-gray-800 hover:text-blue-400 transition-colors">Competitors</a>
-              <a href="/dashboard/campaigns" className="px-3 py-1 rounded-md hover:bg-gray-800 hover:text-blue-400 transition-colors">Campaigns</a>
-              <a href="/dashboard/analytics" className="px-3 py-1 rounded-md hover:bg-gray-800 hover:text-blue-400 transition-colors">Analytics</a>
-              <a href="/dashboard/reports" className="px-3 py-1 rounded-md hover:bg-gray-800 hover:text-blue-400 transition-colors">Reports</a>
-              <a href="/dashboard/integrations" className="px-3 py-1 rounded-md hover:bg-gray-800 hover:text-blue-400 transition-colors">Integrations</a>
-              <a href="/dashboard/autopilot" className="px-3 py-1 rounded-md hover:bg-gray-800 hover:text-blue-400 transition-colors">Autopilot</a>
-              <a href="/dashboard/pricing" className="px-3 py-1 rounded-md hover:bg-gray-800 hover:text-blue-400 transition-colors">Pricing</a>
+              <a href="/dashboard" className="px-3 py-1 rounded-md hover:bg-gray-800 hover:text-blue-400 transition-all transform hover:scale-105 active:scale-95">Dashboard</a>
+              <a href="/dashboard/competitors" className="px-3 py-1 rounded-md hover:bg-gray-800 hover:text-blue-400 transition-all transform hover:scale-105 active:scale-95">Competitors</a>
+              <a href="/dashboard/campaigns" className="px-3 py-1 rounded-md hover:bg-gray-800 hover:text-blue-400 transition-all transform hover:scale-105 active:scale-95">Campaigns</a>
+              <a href="/dashboard/analytics" className="px-3 py-1 rounded-md hover:bg-gray-800 hover:text-blue-400 transition-all transform hover:scale-105 active:scale-95">Analytics</a>
+              <a href="/dashboard/reports" className="px-3 py-1 rounded-md hover:bg-gray-800 hover:text-blue-400 transition-all transform hover:scale-105 active:scale-95">Reports</a>
+              <a href="/dashboard/integrations" className="px-3 py-1 rounded-md hover:bg-gray-800 hover:text-blue-400 transition-all transform hover:scale-105 active:scale-95">Integrations</a>
+              <a href="/dashboard/autopilot" className="px-3 py-1 rounded-md hover:bg-gray-800 hover:text-blue-400 transition-all transform hover:scale-105 active:scale-95">Autopilot</a>
+              <a href="/dashboard/pricing" className="px-3 py-1 rounded-md hover:bg-gray-800 hover:text-blue-400 transition-all transform hover:scale-105 active:scale-95">Pricing</a>
             </div>
           </div>
         </nav>

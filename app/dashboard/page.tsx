@@ -6,14 +6,49 @@ import CampaignChart from '@/app/components/CampaignChart';
 
 export default function DashboardPage() {
   const [lastUpdated, setLastUpdated] = useState(new Date());
+  const [activities, setActivities] = useState([
+    { text: 'New campaign created', time: 2 },
+    { text: 'A/B test completed', time: 15 },
+    { text: 'Report generated', time: 60 }
+  ]);
 
   useEffect(() => {
     const interval = setInterval(() => {
       setLastUpdated(new Date());
-    }, 30000); // Update every 30 seconds
+      
+      // Update activity times
+      setActivities(prev => prev.map(activity => ({
+        ...activity,
+        time: activity.time + 0.5 // Increment by 30 seconds
+      })));
+      
+      // Occasionally add new activities
+      if (Math.random() < 0.3) {
+        const newActivities = [
+          'Campaign optimized',
+          'New lead captured', 
+          'Email sent',
+          'Click recorded',
+          'Conversion tracked'
+        ];
+        const randomActivity = newActivities[Math.floor(Math.random() * newActivities.length)];
+        
+        setActivities(prev => [
+          { text: randomActivity, time: 0.5 },
+          ...prev.slice(0, 2)
+        ]);
+      }
+    }, 30000);
 
     return () => clearInterval(interval);
   }, []);
+
+  const formatTime = (minutes) => {
+    if (minutes < 1) return 'Just now';
+    if (minutes < 60) return `${Math.floor(minutes)} min ago`;
+    const hours = Math.floor(minutes / 60);
+    return `${hours} hour${hours > 1 ? 's' : ''} ago`;
+  };
 
   const dashboardData = {
     campaigns: { total: 12, active: 8 },
@@ -50,18 +85,12 @@ export default function DashboardPage() {
         <div className="card">
           <h2 className="text-lg md:text-xl font-semibold mb-4">Recent Activity</h2>
           <div className="space-y-3">
-            <div className="flex flex-col md:flex-row justify-between items-start md:items-center p-3 bg-gray-50 rounded gap-1">
-              <span>New campaign created</span>
-              <span className="text-sm text-gray-500">2 min ago</span>
-            </div>
-            <div className="flex flex-col md:flex-row justify-between items-start md:items-center p-3 bg-gray-50 rounded gap-1">
-              <span>A/B test completed</span>
-              <span className="text-sm text-gray-500">15 min ago</span>
-            </div>
-            <div className="flex flex-col md:flex-row justify-between items-start md:items-center p-3 bg-gray-50 rounded gap-1">
-              <span>Report generated</span>
-              <span className="text-sm text-gray-500">1 hour ago</span>
-            </div>
+            {activities.map((activity, index) => (
+              <div key={index} className="flex flex-col md:flex-row justify-between items-start md:items-center p-3 bg-gray-50 rounded gap-1 transition-all">
+                <span>{activity.text}</span>
+                <span className="text-sm text-gray-500">{formatTime(activity.time)}</span>
+              </div>
+            ))}
           </div>
         </div>
       </div>
